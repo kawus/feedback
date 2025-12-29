@@ -1,65 +1,161 @@
-import Image from "next/image";
+"use client"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 
 export default function Home() {
+  const [email, setEmail] = useState("")
+  const [submitted, setSubmitted] = useState(false)
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    // TODO: Connect to Supabase to store emails
+    console.log("Email submitted:", email)
+    setSubmitted(true)
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="border-b border-gray-100">
+        <div className="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center">
+              <span className="text-white text-sm font-bold">F</span>
+            </div>
+            <span className="font-semibold text-gray-900">FeedbackApp</span>
+          </div>
+          <Badge variant="secondary" className="text-xs">
+            Coming Soon
+          </Badge>
+        </div>
+      </header>
+
+      {/* Hero */}
+      <main className="mx-auto max-w-5xl px-6">
+        <section className="py-20 md:py-32">
+          <div className="max-w-2xl">
+            {/* Tagline */}
+            <p className="text-sm font-medium text-gray-500 mb-4">
+              The simpler alternative to Canny
+            </p>
+
+            {/* Headline */}
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight leading-tight mb-6">
+              User feedback
+              <br />
+              made stupidly simple
+            </h1>
+
+            {/* Subheadline */}
+            <p className="text-lg text-gray-600 mb-8 max-w-lg">
+              Collect feedback, let users vote, share your roadmap, and announce updates.
+              All in one beautiful place. Set up in under 2 minutes.
+            </p>
+
+            {/* Email capture */}
+            {!submitted ? (
+              <form onSubmit={handleSubmit} className="flex gap-3 max-w-md">
+                <Input
+                  type="email"
+                  placeholder="you@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="flex-1"
+                />
+                <Button type="submit">
+                  Get Early Access
+                </Button>
+              </form>
+            ) : (
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 max-w-md">
+                <p className="text-gray-900 font-medium">You're on the list!</p>
+                <p className="text-gray-600 text-sm mt-1">
+                  We'll let you know when we launch.
+                </p>
+              </div>
+            )}
+
+            {/* Social proof hint */}
+            <p className="text-sm text-gray-500 mt-4">
+              Join 0 others waiting for launch
+            </p>
+          </div>
+        </section>
+
+        {/* Features */}
+        <section className="py-16 border-t border-gray-100">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <FeatureCard
+              title="Feedback Board"
+              description="Let users submit feature requests and ideas. Simple form, no friction."
+            />
+            <FeatureCard
+              title="Voting"
+              description="Users upvote what matters most. See what your community really wants."
+            />
+            <FeatureCard
+              title="Public Roadmap"
+              description="Share what's planned, in progress, and done. Build in public."
+            />
+            <FeatureCard
+              title="Changelog"
+              description="Announce new features and updates. Keep users in the loop."
+            />
+          </div>
+        </section>
+
+        {/* Why different */}
+        <section className="py-16 border-t border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">
+            Why not Canny?
+          </h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            <CompareCard
+              title="Transparent pricing"
+              description="Know what you'll pay upfront. No sales calls, no surprises."
+            />
+            <CompareCard
+              title="Set up in 2 minutes"
+              description="Not 2 hours. Paste a script, you're live. That's it."
+            />
+            <CompareCard
+              title="Built for indie makers"
+              description="Not enterprise. No feature bloat. Just what you need."
+            />
+          </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-100 mt-16">
+        <div className="mx-auto max-w-5xl px-6 py-8">
+          <p className="text-sm text-gray-500">
+            Built by an indie maker, for indie makers.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </footer>
     </div>
-  );
+  )
+}
+
+function FeatureCard({ title, description }: { title: string; description: string }) {
+  return (
+    <div>
+      <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
+      <p className="text-gray-600 text-sm">{description}</p>
+    </div>
+  )
+}
+
+function CompareCard({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="bg-gray-50 rounded-lg p-6">
+      <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
+      <p className="text-gray-600 text-sm">{description}</p>
+    </div>
+  )
 }
