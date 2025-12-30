@@ -55,7 +55,7 @@ Be the "Tally of feedback tools" - a dead-simple alternative to Canny for indie 
 ### Week 1: Foundation + Validation
 - [x] Project setup (Next.js + Supabase + shadcn)
 - [x] Landing page with email capture
-- [ ] Connect Supabase for email collection
+- [x] Connect Supabase for email collection
 - [ ] Deploy to Vercel
 - [ ] Post on Indie Hackers for validation
 - [ ] Find 10 interested people
@@ -169,3 +169,57 @@ changelog_entries (
 2. **Ship fast, learn fast** - A shipped MVP beats a perfect plan
 3. **Talk to users obsessively** - PM skills are the superpower here
 4. **Don't fall in love** - Fall in love with the process, not the idea
+
+---
+
+## 🎯 Next Steps (Updated: Dec 30, 2024)
+
+### Immediate Priority: Get Live & Validate
+
+**Step 1: Connect Email Collection** ✅ DONE
+- ~~Create `waitlist` table in Supabase~~
+- ~~Wire up landing page form to save emails~~
+- ~~Add success toast/message~~
+
+**Step 2: Deploy to Vercel** 🟢 LOW RISK ← YOU ARE HERE
+- Connect GitHub repo to Vercel
+- Add Supabase env variables
+- Your landing page goes live!
+
+**Step 3: Start Validation** 🟢 LOW RISK
+- Post on Indie Hackers (show landing page, ask for feedback)
+- Share in relevant Twitter/X communities
+- Goal: 10 email signups + 5 user conversations
+
+### After Validation: Build Core MVP
+
+**Step 4: Database Schema** 🟡 MEDIUM RISK
+- Set up tables: boards, posts, votes, changelog_entries
+- Configure Row Level Security (RLS) policies
+
+**Step 5: Magic Link Auth** 🟡 MEDIUM RISK
+- Enable Supabase Auth with magic links
+- Create login/signup flow
+- Protect admin routes
+
+**Step 6: Board Creation** 🟢 LOW RISK
+- Create board form (name, slug)
+- Board settings page
+- Public board view
+
+---
+
+### 📊 Current Progress
+
+| Phase | Status |
+|-------|--------|
+| Project setup | ✅ Done |
+| Landing page | ✅ Done |
+| Email collection | ✅ Done |
+| Deploy to Vercel | ⏳ Next |
+| Validation | 🔜 Pending |
+| Database schema | 🔜 Pending |
+| Auth | 🔜 Pending |
+| Feedback board | 🔜 Pending |
+| Roadmap view | 🔜 Pending |
+| Changelog | 🔜 Pending |

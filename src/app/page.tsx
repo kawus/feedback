@@ -4,15 +4,36 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { supabase } from "@/lib/supabase"
 
 export default function Home() {
   const [email, setEmail] = useState("")
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Connect to Supabase to store emails
-    console.log("Email submitted:", email)
+    setLoading(true)
+    setError("")
+
+    // Save email to Supabase waitlist table
+    const { error: supabaseError } = await supabase
+      .from("waitlist")
+      .insert({ email })
+
+    setLoading(false)
+
+    if (supabaseError) {
+      // Handle duplicate email gracefully
+      if (supabaseError.code === "23505") {
+        setError("You're already on the list!")
+      } else {
+        setError("Something went wrong. Please try again.")
+      }
+      return
+    }
+
     setSubmitted(true)
   }
 
@@ -57,19 +78,25 @@ export default function Home() {
 
             {/* Email capture */}
             {!submitted ? (
-              <form onSubmit={handleSubmit} className="flex gap-3 max-w-md">
-                <Input
-                  type="email"
-                  placeholder="you@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="flex-1"
-                />
-                <Button type="submit">
-                  Get Early Access
-                </Button>
-              </form>
+              <div className="max-w-md">
+                <form onSubmit={handleSubmit} className="flex gap-3">
+                  <Input
+                    type="email"
+                    placeholder="you@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={loading}
+                    className="flex-1"
+                  />
+                  <Button type="submit" disabled={loading}>
+                    {loading ? "Joining..." : "Get Early Access"}
+                  </Button>
+                </form>
+                {error && (
+                  <p className="text-red-600 text-sm mt-2">{error}</p>
+                )}
+              </div>
             ) : (
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 max-w-md">
                 <p className="text-gray-900 font-medium">You're on the list!</p>
