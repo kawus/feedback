@@ -58,15 +58,15 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-gray-100">
+      <header className="border-b border-border">
         <div className="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center">
-              <span className="text-white text-sm font-bold">F</span>
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground text-sm font-semibold">F</span>
             </div>
-            <span className="font-semibold text-gray-900">FeedbackApp</span>
+            <span className="font-semibold text-foreground tracking-tight">FeedbackApp</span>
           </div>
           <Badge variant="secondary" className="text-xs">
             Coming Soon
@@ -79,19 +79,19 @@ export default function Home() {
         <section className="py-20 md:py-32">
           <div className="max-w-2xl">
             {/* Tagline */}
-            <p className="text-sm font-medium text-gray-500 mb-4">
+            <p className="text-sm font-medium text-muted-foreground mb-4">
               The simpler alternative to Canny
             </p>
 
             {/* Headline */}
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight leading-tight mb-6">
+            <h1 className="text-4xl md:text-5xl font-semibold text-foreground tracking-tight leading-tight mb-6">
               User feedback
               <br />
               made stupidly simple
             </h1>
 
             {/* Subheadline */}
-            <p className="text-lg text-gray-600 mb-8 max-w-lg">
+            <p className="text-lg text-muted-foreground leading-relaxed mb-8 max-w-lg">
               Collect feedback, let users vote, share your roadmap, and announce updates.
               All in one beautiful place. Set up in under 2 minutes.
             </p>
@@ -99,7 +99,7 @@ export default function Home() {
             {/* Email capture */}
             {!submitted ? (
               <div className="max-w-md">
-                <form onSubmit={handleSubmit} className="flex gap-3">
+                <form onSubmit={handleSubmit} className="flex gap-4">
                   <Input
                     type="email"
                     placeholder="you@company.com"
@@ -114,13 +114,13 @@ export default function Home() {
                   </Button>
                 </form>
                 {error && (
-                  <p className="text-red-600 text-sm mt-2">{error}</p>
+                  <p className="text-destructive text-sm mt-2">{error}</p>
                 )}
               </div>
             ) : (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 max-w-md">
-                <p className="text-gray-900 font-medium">You're on the list!</p>
-                <p className="text-gray-600 text-sm mt-1">
+              <div className="bg-muted border border-border rounded-lg p-4 max-w-md shadow-[var(--shadow-sm)]">
+                <p className="text-foreground font-semibold">You're on the list!</p>
+                <p className="text-muted-foreground text-sm mt-1 leading-relaxed">
                   We'll let you know when we launch.
                 </p>
               </div>
@@ -128,7 +128,7 @@ export default function Home() {
 
             {/* Social proof hint */}
             {waitlistCount !== null && waitlistCount > 0 && (
-              <p className="text-sm text-gray-500 mt-4">
+              <p className="text-sm text-muted-foreground mt-4">
                 Join {waitlistCount} {waitlistCount === 1 ? "other" : "others"} waiting for launch
               </p>
             )}
@@ -136,7 +136,7 @@ export default function Home() {
         </section>
 
         {/* Features */}
-        <section className="py-16 border-t border-gray-100">
+        <section className="py-16 border-t border-border">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <FeatureCard
               title="Feedback Board"
@@ -158,8 +158,8 @@ export default function Home() {
         </section>
 
         {/* Why different */}
-        <section className="py-16 border-t border-gray-100">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">
+        <section className="py-16 border-t border-border">
+          <h2 className="text-2xl font-semibold text-foreground tracking-tight mb-8">
             Why not Canny?
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
@@ -180,9 +180,9 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-100 mt-16">
+      <footer className="border-t border-border mt-16">
         <div className="mx-auto max-w-5xl px-6 py-8">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Built by an indie maker, for indie makers.
           </p>
         </div>
@@ -194,17 +194,17 @@ export default function Home() {
 function FeatureCard({ title, description }: { title: string; description: string }) {
   return (
     <div>
-      <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-600 text-sm">{description}</p>
+      <h3 className="font-semibold text-foreground tracking-tight mb-2">{title}</h3>
+      <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
     </div>
   )
 }
 
 function CompareCard({ title, description }: { title: string; description: string }) {
   return (
-    <div className="bg-gray-50 rounded-lg p-6">
-      <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-600 text-sm">{description}</p>
+    <div className="bg-muted rounded-lg p-6 shadow-[var(--shadow-sm)] transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]">
+      <h3 className="font-semibold text-foreground tracking-tight mb-2">{title}</h3>
+      <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
     </div>
   )
 }
