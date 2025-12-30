@@ -56,7 +56,7 @@ Be the "Tally of feedback tools" - a dead-simple alternative to Canny for indie 
 - [x] Project setup (Next.js + Supabase + shadcn)
 - [x] Landing page with email capture
 - [x] Connect Supabase for email collection
-- [ ] Deploy to Vercel
+- [x] Deploy to Vercel
 - [ ] Post on Indie Hackers for validation
 - [ ] Find 10 interested people
 
@@ -181,12 +181,12 @@ changelog_entries (
 - ~~Wire up landing page form to save emails~~
 - ~~Add success toast/message~~
 
-**Step 2: Deploy to Vercel** 🟢 LOW RISK ← YOU ARE HERE
-- Connect GitHub repo to Vercel
-- Add Supabase env variables
-- Your landing page goes live!
+**Step 2: Deploy to Vercel** ✅ DONE
+- ~~Connect GitHub repo to Vercel~~
+- ~~Add Supabase env variables~~
+- ~~Your landing page goes live!~~
 
-**Step 3: Start Validation** 🟢 LOW RISK
+**Step 3: Start Validation** 🟢 LOW RISK ← YOU ARE HERE
 - Post on Indie Hackers (show landing page, ask for feedback)
 - Share in relevant Twitter/X communities
 - Goal: 10 email signups + 5 user conversations
@@ -216,8 +216,8 @@ changelog_entries (
 | Project setup | ✅ Done |
 | Landing page | ✅ Done |
 | Email collection | ✅ Done |
-| Deploy to Vercel | ⏳ Next |
-| Validation | 🔜 Pending |
+| Deploy to Vercel | ✅ Done |
+| Validation | ⏳ Next |
 | Database schema | 🔜 Pending |
 | Auth | 🔜 Pending |
 | Feedback board | 🔜 Pending |
