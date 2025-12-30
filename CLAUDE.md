@@ -43,6 +43,29 @@ Copy `.env.local.example` to `.env.local` and add Supabase credentials:
 - Tailwind class merging via `cn()` utility from `@/lib/utils`
 - Geist font family (Sans and Mono variants)
 
+### Design System (Linear/Notion-inspired)
+Premium design tokens defined in `globals.css`:
+
+**Shadows (layered for depth):**
+- `--shadow-sm`: Subtle single shadow
+- `--shadow-md`: 3-layer shadow for cards/buttons
+- `--shadow-lg`: 5-layer shadow for elevated elements
+- `--shadow-hover`: Hover state shadow
+
+**Usage:** `shadow-[var(--shadow-md)]`
+
+**Spacing:** 8px grid (use Tailwind: p-2=8px, gap-4=16px, mb-6=24px, mt-8=32px)
+
+**Typography:**
+- Headlines: `font-semibold tracking-tight leading-tight`
+- Body: `leading-relaxed`
+
+**Border radius:** 6px base (`--radius: 0.375rem`)
+
+**Transitions:** 200ms ease-out, hover lift with `-translate-y-0.5`
+
+**Colors:** Use semantic tokens (`text-foreground`, `bg-muted`, `border-border`)
+
 ## Planned Features (see PLAN.md)
 - Feedback board with upvoting
 - Public roadmap (Kanban: Planned → In Progress → Done)
