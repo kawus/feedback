@@ -17,6 +17,13 @@ export default function Home() {
     setLoading(true)
     setError("")
 
+    // Check if Supabase is configured
+    if (!supabase) {
+      setError("Service unavailable. Please try again later.")
+      setLoading(false)
+      return
+    }
+
     // Save email to Supabase waitlist table
     const { error: supabaseError } = await supabase
       .from("waitlist")
