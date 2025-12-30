@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -11,6 +11,17 @@ export default function Home() {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [waitlistCount, setWaitlistCount] = useState<number | null>(null)
+
+  // Fetch waitlist count on page load
+  useEffect(() => {
+    async function fetchCount() {
+      if (!supabase) return
+      const { data } = await supabase.rpc("get_waitlist_count")
+      if (data !== null) setWaitlistCount(data)
+    }
+    fetchCount()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,6 +53,8 @@ export default function Home() {
     }
 
     setSubmitted(true)
+    // Update the count after successful signup
+    setWaitlistCount((prev) => (prev !== null ? prev + 1 : 1))
   }
 
   return (
@@ -114,9 +127,11 @@ export default function Home() {
             )}
 
             {/* Social proof hint */}
-            <p className="text-sm text-gray-500 mt-4">
-              Join 0 others waiting for launch
-            </p>
+            {waitlistCount !== null && waitlistCount > 0 && (
+              <p className="text-sm text-gray-500 mt-4">
+                Join {waitlistCount} {waitlistCount === 1 ? "other" : "others"} waiting for launch
+              </p>
+            )}
           </div>
         </section>
 
