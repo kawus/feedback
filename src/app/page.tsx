@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { supabase } from "@/lib/supabase"
 
 export default function Home() {
@@ -68,9 +69,12 @@ export default function Home() {
             </div>
             <span className="font-semibold text-foreground tracking-tight">FeedbackApp</span>
           </div>
-          <Badge variant="secondary" className="text-xs">
-            Coming Soon
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">
+              Coming Soon
+            </Badge>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
