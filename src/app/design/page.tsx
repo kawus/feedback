@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -12,6 +13,36 @@ import {
   CardFooter,
 } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { toast } from "@/components/ui/sonner"
+import { MoreHorizontal, Settings, User, LogOut } from "lucide-react"
 
 export default function DesignSystemPage() {
   return (
@@ -246,17 +277,211 @@ export default function DesignSystemPage() {
           </div>
         </Section>
 
-        {/* Planned Components Section */}
-        <Section title="Planned Components" description="Future additions to the design system">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <PlannedComponent name="Modal/Dialog" />
-            <PlannedComponent name="Dropdown Menu" />
-            <PlannedComponent name="Toast" />
-            <PlannedComponent name="Select" />
-            <PlannedComponent name="Checkbox" />
-            <PlannedComponent name="Radio Group" />
-            <PlannedComponent name="Tabs" />
-            <PlannedComponent name="Avatar" />
+        {/* Dialog Section */}
+        <Section title="Dialog" description="Modal overlays for confirmations and forms">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>Open Dialog</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Are you sure?</DialogTitle>
+                <DialogDescription>
+                  This action cannot be undone. This will permanently delete your account and remove your data from our servers.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline">Cancel</Button>
+                <Button variant="destructive">Delete</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </Section>
+
+        {/* Dropdown Menu Section */}
+        <Section title="Dropdown Menu" description="Contextual actions and navigation">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <MoreHorizontal className="size-4" />
+                Options
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <User className="mr-2 size-4" />
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Settings className="mr-2 size-4" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive">
+                <LogOut className="mr-2 size-4" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </Section>
+
+        {/* Toast Section */}
+        <Section title="Toast" description="Notifications for success, error, and info messages">
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="outline"
+              onClick={() => toast.success("Changes saved successfully")}
+            >
+              Success Toast
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => toast.error("Something went wrong")}
+            >
+              Error Toast
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => toast.info("New update available")}
+            >
+              Info Toast
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() =>
+                toast("Event created", {
+                  description: "Your event has been scheduled for tomorrow at 3pm.",
+                  action: {
+                    label: "Undo",
+                    onClick: () => console.log("Undo"),
+                  },
+                })
+              }
+            >
+              With Action
+            </Button>
+          </div>
+        </Section>
+
+        {/* Select Section */}
+        <Section title="Select" description="Dropdown form inputs for single selection">
+          <div className="max-w-xs">
+            <Select>
+              <SelectTrigger>
+                <SelectValue placeholder="Select status..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="planned">Planned</SelectItem>
+                <SelectItem value="in-progress">In Progress</SelectItem>
+                <SelectItem value="done">Done</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </Section>
+
+        {/* Checkbox Section */}
+        <Section title="Checkbox" description="Boolean inputs for multiple selections">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Checkbox id="terms" />
+              <label htmlFor="terms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Accept terms and conditions
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox id="marketing" defaultChecked />
+              <label htmlFor="marketing" className="text-sm font-medium leading-none">
+                Receive marketing emails
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox id="disabled" disabled />
+              <label htmlFor="disabled" className="text-sm font-medium leading-none opacity-50">
+                Disabled checkbox
+              </label>
+            </div>
+          </div>
+        </Section>
+
+        {/* Radio Group Section */}
+        <Section title="Radio Group" description="Exclusive option selection">
+          <RadioGroup defaultValue="option-1">
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="option-1" id="option-1" />
+              <label htmlFor="option-1" className="text-sm font-medium">All notifications</label>
+            </div>
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="option-2" id="option-2" />
+              <label htmlFor="option-2" className="text-sm font-medium">Important only</label>
+            </div>
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="option-3" id="option-3" />
+              <label htmlFor="option-3" className="text-sm font-medium">None</label>
+            </div>
+          </RadioGroup>
+        </Section>
+
+        {/* Tabs Section */}
+        <Section title="Tabs" description="Organized content sections">
+          <Tabs defaultValue="account" className="max-w-md">
+            <TabsList>
+              <TabsTrigger value="account">Account</TabsTrigger>
+              <TabsTrigger value="password">Password</TabsTrigger>
+              <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            </TabsList>
+            <TabsContent value="account" className="p-4 bg-muted rounded-md">
+              <p className="text-sm text-muted-foreground">Manage your account settings and preferences.</p>
+            </TabsContent>
+            <TabsContent value="password" className="p-4 bg-muted rounded-md">
+              <p className="text-sm text-muted-foreground">Change your password and security settings.</p>
+            </TabsContent>
+            <TabsContent value="notifications" className="p-4 bg-muted rounded-md">
+              <p className="text-sm text-muted-foreground">Configure how you receive notifications.</p>
+            </TabsContent>
+          </Tabs>
+        </Section>
+
+        {/* Avatar Section */}
+        <Section title="Avatar" description="User profile display with fallback initials">
+          <div className="flex items-center gap-4">
+            <div className="text-center">
+              <Avatar size="sm">
+                <AvatarImage src="https://github.com/shadcn.png" />
+                <AvatarFallback>CN</AvatarFallback>
+              </Avatar>
+              <p className="text-xs text-muted-foreground mt-1">sm</p>
+            </div>
+            <div className="text-center">
+              <Avatar>
+                <AvatarImage src="https://github.com/shadcn.png" />
+                <AvatarFallback>CN</AvatarFallback>
+              </Avatar>
+              <p className="text-xs text-muted-foreground mt-1">default</p>
+            </div>
+            <div className="text-center">
+              <Avatar size="lg">
+                <AvatarImage src="https://github.com/shadcn.png" />
+                <AvatarFallback>CN</AvatarFallback>
+              </Avatar>
+              <p className="text-xs text-muted-foreground mt-1">lg</p>
+            </div>
+            <div className="text-center">
+              <Avatar size="xl">
+                <AvatarImage src="https://github.com/shadcn.png" />
+                <AvatarFallback>CN</AvatarFallback>
+              </Avatar>
+              <p className="text-xs text-muted-foreground mt-1">xl</p>
+            </div>
+            <div className="text-center">
+              <Avatar size="lg">
+                <AvatarFallback>JD</AvatarFallback>
+              </Avatar>
+              <p className="text-xs text-muted-foreground mt-1">fallback</p>
+            </div>
           </div>
         </Section>
 
@@ -392,10 +617,3 @@ function RadiusExample({
   )
 }
 
-function PlannedComponent({ name }: { name: string }) {
-  return (
-    <div className="p-4 border border-dashed border-border rounded-md bg-muted/50">
-      <p className="text-sm text-muted-foreground">{name}</p>
-    </div>
-  )
-}
