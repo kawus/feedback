@@ -3,6 +3,36 @@
 ## Vision
 Be the "Tally of feedback tools" - a dead-simple alternative to Canny for indie makers and small teams.
 
+---
+
+## Architecture Philosophy (Login-Last)
+
+Inspired by Tally's approach: experience the magic first, auth only when needed.
+
+> Tally grew to 400K users and $150K MRR with a genuinely free product. Free users ARE the marketing.
+
+### No Login Required
+| Action | How It Works |
+|--------|--------------|
+| Create a board | Generated slug + claim_token stored in localStorage |
+| Submit feedback | Email only (for vote tracking) |
+| Upvote | Email-based (one vote per email) |
+| View roadmap | Fully public |
+| View changelog | Fully public |
+
+### Login Required
+| Action | Why |
+|--------|-----|
+| Claim a board | Permanently link to account |
+| Access from new device | Prove ownership |
+| Admin actions | Status changes, delete, settings |
+
+### Unclaimed Boards
+- Expire after 30 days (soft nudge to claim)
+- Warning email at 7 days before expiry
+
+---
+
 ## The Opportunity
 
 **Problem:** Canny recently limited their free plan (100 posts, removed roadmaps). Pricing scales to $1,349/mo. Indie makers are actively seeking alternatives.
@@ -60,30 +90,31 @@ Be the "Tally of feedback tools" - a dead-simple alternative to Canny for indie 
 - [ ] Post on Indie Hackers for validation
 - [ ] Find 10 interested people
 
-### Week 2: Core Database + Auth
-- [ ] Database schema (users, boards, posts, votes)
-- [ ] Magic link authentication
-- [ ] Create board flow
+### Week 2: Anonymous Board Flow (No Auth!)
+- [ ] Database schema (boards with claim_token, posts, votes)
+- [ ] Create board form → generates slug + claim_token
+- [ ] Store claim_token in localStorage
+- [ ] Board page at /b/[slug]
+- [ ] "Save this board" banner (CTA for later)
+
+### Week 3: Feedback + Voting (No Auth!)
+- [ ] Submit feedback form (email + title + description)
+- [ ] Feedback list view with vote counts
+- [ ] Email-based upvoting (one vote per email)
+- [ ] Sort by votes/recent
+- [ ] "Powered by FeedbackApp" badge
+
+### Week 4: Claim Flow + Admin (Auth Introduced)
+- [ ] Magic link "claim board" flow
+- [ ] Link board to user account (set user_id, clear expires_at)
+- [ ] Admin actions: change status, delete feedback
 - [ ] Board settings page
 
-### Week 3: Feedback + Voting
-- [ ] Submit feedback form (public)
-- [ ] Feedback list view
-- [ ] Upvoting mechanism
-- [ ] Sort by votes/recent
-
-### Week 4: Roadmap + Changelog
-- [ ] Roadmap kanban view
-- [ ] Drag-and-drop status changes
-- [ ] Changelog entries
-- [ ] Public changelog page
-- [ ] "Powered by" badge
-
-### Week 5: Polish + Launch
-- [ ] Mobile responsiveness
+### Week 5: Roadmap + Polish
+- [ ] Roadmap kanban view (Planned → In Progress → Done)
+- [ ] Public roadmap page
 - [ ] Loading states
-- [ ] Error handling
-- [ ] Onboard early users
+- [ ] Mobile responsiveness
 - [ ] Launch on Indie Hackers, Twitter
 
 ---
@@ -93,12 +124,14 @@ Be the "Tally of feedback tools" - a dead-simple alternative to Canny for indie 
 ```sql
 -- Users (handled by Supabase Auth)
 
--- Boards
+-- Boards (login-last: user_id is NULL until claimed)
 boards (
   id uuid primary key,
-  user_id uuid references auth.users,
+  user_id uuid references auth.users,  -- NULL until claimed
   name text,
   slug text unique,
+  claim_token text,                     -- Secret for anonymous admin access
+  expires_at timestamp,                 -- NULL if claimed, 30 days if unclaimed
   created_at timestamp
 )
 
@@ -135,13 +168,24 @@ changelog_entries (
 
 ---
 
-## Monetization (Future)
+## Monetization (Tally-Inspired)
+
+### Philosophy
+- Free tier is **genuinely unlimited** (not a crippled trial)
+- The product IS the marketing ("Powered by" badge)
+- No volume-based pricing (don't punish success)
+- Upgrade for power features, not basic functionality
 
 | Plan | Price | Features |
 |------|-------|----------|
-| Free | $0 | 1 board, 100 posts, "Powered by" badge |
-| Pro | $9/mo | Unlimited, no badge, custom domain |
-| Team | $29/mo | Multiple boards, team members |
+| Free | $0 | **Unlimited** boards, posts, votes, roadmap, changelog + "Powered by" badge |
+| Pro | $19/mo | Remove badge, custom domain, team collaboration, Slack integration |
+
+### Why This Works
+1. Low marginal cost per user (just database rows)
+2. Self-onboarding (no support overhead)
+3. Virality built-in (every board = free ad)
+4. Free users spread word of mouth → paid conversions
 
 ---
 
@@ -191,21 +235,25 @@ changelog_entries (
 - Share in relevant Twitter/X communities
 - Goal: 10 email signups + 5 user conversations
 
-### After Validation: Build Core MVP
+### After Validation: Build Core MVP (Login-Last!)
 
 **Step 4: Database Schema** 🟡 MEDIUM RISK
-- Set up tables: boards, posts, votes, changelog_entries
-- Configure Row Level Security (RLS) policies
+- Set up tables: boards (with claim_token, expires_at), posts, votes
+- Configure RLS for public read, token-based write
 
-**Step 5: Magic Link Auth** 🟡 MEDIUM RISK
-- Enable Supabase Auth with magic links
-- Create login/signup flow
-- Protect admin routes
+**Step 5: Anonymous Board Creation** 🟢 LOW RISK
+- Create board form → generates slug + claim_token
+- Store claim_token in localStorage
+- Board page at /b/[slug]
 
-**Step 6: Board Creation** 🟢 LOW RISK
-- Create board form (name, slug)
-- Board settings page
-- Public board view
+**Step 6: Feedback + Voting** 🟢 LOW RISK
+- Public feedback submission (email only)
+- Email-based voting
+- "Powered by" badge
+
+**Step 7: Claim Flow (Auth)** 🟡 MEDIUM RISK
+- Magic link to claim board
+- Admin actions require auth
 
 ---
 
@@ -219,7 +267,7 @@ changelog_entries (
 | Deploy to Vercel | ✅ Done |
 | Validation | ⏳ Next |
 | Database schema | 🔜 Pending |
-| Auth | 🔜 Pending |
-| Feedback board | 🔜 Pending |
+| Anonymous board creation | 🔜 Pending |
+| Feedback + voting | 🔜 Pending |
+| Claim flow (auth) | 🔜 Pending |
 | Roadmap view | 🔜 Pending |
-| Changelog | 🔜 Pending |
