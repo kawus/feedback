@@ -2,13 +2,16 @@
 
 import { Post } from "@/types/database"
 import { VoteButton } from "./vote-button"
+import { StatusSelector } from "./status-selector"
 
 interface FeedbackListProps {
   posts: Post[]
+  boardSlug: string
+  isOwner: boolean
   onVoteChange?: () => void
 }
 
-export function FeedbackList({ posts, onVoteChange }: FeedbackListProps) {
+export function FeedbackList({ posts, boardSlug, isOwner, onVoteChange }: FeedbackListProps) {
   if (posts.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
@@ -21,13 +24,26 @@ export function FeedbackList({ posts, onVoteChange }: FeedbackListProps) {
   return (
     <div className="space-y-4">
       {posts.map((post) => (
-        <FeedbackItem key={post.id} post={post} onVoteChange={onVoteChange} />
+        <FeedbackItem
+          key={post.id}
+          post={post}
+          boardSlug={boardSlug}
+          isOwner={isOwner}
+          onVoteChange={onVoteChange}
+        />
       ))}
     </div>
   )
 }
 
-function FeedbackItem({ post, onVoteChange }: { post: Post; onVoteChange?: () => void }) {
+interface FeedbackItemProps {
+  post: Post
+  boardSlug: string
+  isOwner: boolean
+  onVoteChange?: () => void
+}
+
+function FeedbackItem({ post, boardSlug, isOwner, onVoteChange }: FeedbackItemProps) {
   // Format the date nicely
   const formattedDate = new Date(post.created_at).toLocaleDateString("en-US", {
     month: "short",
@@ -57,8 +73,17 @@ function FeedbackItem({ post, onVoteChange }: { post: Post; onVoteChange?: () =>
           <p className="text-xs text-muted-foreground mt-2">{formattedDate}</p>
         </div>
 
-        {/* Status badge */}
-        <StatusBadge status={post.status} />
+        {/* Status: selector for owner, badge for others */}
+        {isOwner ? (
+          <StatusSelector
+            postId={post.id}
+            boardSlug={boardSlug}
+            currentStatus={post.status}
+            onStatusChange={onVoteChange}
+          />
+        ) : (
+          <StatusBadge status={post.status} />
+        )}
       </div>
     </div>
   )
