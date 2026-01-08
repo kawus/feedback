@@ -3,6 +3,8 @@
 ## Vision
 Be the "Tally of feedback tools" - a dead-simple alternative to Canny for indie makers and small teams.
 
+**Live at:** https://woerk.vercel.app
+
 ---
 
 ## Architecture Philosophy (Login-Last)
@@ -25,7 +27,6 @@ Inspired by Tally's approach: experience the magic first, auth only when needed.
 |--------|-----|
 | Claim a board | Permanently link to account |
 | Access from new device | Prove ownership |
-| Admin actions | Status changes, delete, settings |
 
 ### Unclaimed Boards
 - Expire after 30 days (soft nudge to claim)
@@ -48,12 +49,13 @@ Inspired by Tally's approach: experience the magic first, auth only when needed.
 
 ---
 
-## MVP Scope (4 weeks)
+## MVP Scope
 
 ### Core Features (v1)
-- [ ] **Feedback board** - Users submit feature requests
-- [ ] **Upvoting** - Users vote on requests
-- [ ] **Public roadmap** - Kanban: Planned → In Progress → Done
+- [x] **Feedback board** - Users submit feature requests
+- [x] **Upvoting** - Users vote on requests (email-based)
+- [x] **Status management** - Owner can set Planned/In Progress/Done
+- [x] **Public roadmap** - Kanban: Planned → In Progress → Done
 - [ ] **Changelog** - Announce shipped features
 
 ### Explicitly NOT in v1
@@ -64,66 +66,122 @@ Inspired by Tally's approach: experience the magic first, auth only when needed.
 - Multiple boards per account
 
 ### Success Criteria
-- Can set up a board in < 2 minutes
-- Looks beautiful without customization
-- Works on mobile
-- At least 5 real users actively using it
+- Can set up a board in < 2 minutes ✅
+- Looks beautiful without customization ✅
+- Works on mobile ✅
+- At least 5 real users actively using it ⏳
 
 ---
 
 ## Tech Stack
 
-- **Frontend:** Next.js 14 App Router + shadcn/ui + Tailwind
+- **Frontend:** Next.js 16 App Router + shadcn/ui + Tailwind CSS 4
 - **Database:** Supabase (auth, database, realtime)
 - **Hosting:** Vercel
 - **Payments:** Stripe (when needed)
 
 ---
 
-## Build Plan
+## 📊 Current Progress (Updated: Jan 8, 2025)
 
-### Week 1: Foundation + Validation
-- [x] Project setup (Next.js + Supabase + shadcn)
-- [x] Landing page with email capture
-- [x] Connect Supabase for email collection
-- [x] Deploy to Vercel
-- [ ] Post on Indie Hackers for validation
-- [ ] Find 10 interested people
-
-### Week 2: Anonymous Board Flow (No Auth!)
-- [ ] Database schema (boards with claim_token, posts, votes)
-- [ ] Create board form → generates slug + claim_token
-- [ ] Store claim_token in localStorage
-- [ ] Board page at /b/[slug]
-- [ ] "Save this board" banner (CTA for later)
-
-### Week 3: Feedback + Voting (No Auth!)
-- [ ] Submit feedback form (email + title + description)
-- [ ] Feedback list view with vote counts
-- [ ] Email-based upvoting (one vote per email)
-- [ ] Sort by votes/recent
-- [ ] "Powered by FeedbackApp" badge
-
-### Week 4: Claim Flow + Admin (Auth Introduced)
-- [ ] Magic link "claim board" flow
-- [ ] Link board to user account (set user_id, clear expires_at)
-- [ ] Admin actions: change status, delete feedback
-- [ ] Board settings page
-
-### Week 5: Roadmap + Polish
-- [ ] Roadmap kanban view (Planned → In Progress → Done)
-- [ ] Public roadmap page
-- [ ] Loading states
-- [ ] Mobile responsiveness
-- [ ] Launch on Indie Hackers, Twitter
+| Phase | Status |
+|-------|--------|
+| Project setup | ✅ Done |
+| Landing page | ✅ Done |
+| Email collection (waitlist) | ✅ Done |
+| Deploy to Vercel | ✅ Done |
+| Database schema (boards, posts, votes) | ✅ Done |
+| Anonymous board creation | ✅ Done |
+| Feedback submission | ✅ Done |
+| Voting system | ✅ Done |
+| Status management (owner only) | ✅ Done |
+| Roadmap view | ✅ Done |
+| Claim flow (magic link auth) | 🔜 Next |
+| Changelog | 🔜 Pending |
 
 ---
 
-## Database Schema (Draft)
+## What's Built
+
+### Database Tables (Supabase)
+- `waitlist` - Email collection for landing page
+- `boards` - Feedback boards with claim_token for ownership
+- `posts` - Feature requests with status field
+- `votes` - Email-based voting (one vote per email per post)
+
+### Pages
+- `/` - Landing page with waitlist signup
+- `/create` - Create a new board (no login required)
+- `/b/[slug]` - Board view with feedback list
+- `/b/[slug]/roadmap` - Kanban roadmap view
+- `/design` - Design system documentation
+
+### Key Features
+- **Login-last architecture** - Create and manage boards without auth
+- **Claim token system** - localStorage proves ownership
+- **Email-based voting** - No accounts needed
+- **Status management** - Owner can change Open → Planned → In Progress → Done
+- **Server-side validation** - API route validates claim_token for status changes
+
+### Files Structure
+```
+src/
+├── app/
+│   ├── page.tsx              # Landing page
+│   ├── create/page.tsx       # Board creation
+│   ├── b/[slug]/
+│   │   ├── page.tsx          # Board view
+│   │   ├── roadmap/page.tsx  # Roadmap kanban
+│   │   └── not-found.tsx     # 404 page
+│   └── api/posts/[id]/
+│       └── route.ts          # Status update API
+├── components/boards/
+│   ├── create-board-form.tsx
+│   ├── submit-feedback-form.tsx
+│   ├── feedback-list.tsx
+│   ├── vote-button.tsx
+│   ├── status-selector.tsx
+│   └── claim-banner.tsx
+├── lib/
+│   ├── supabase.ts           # Browser client
+│   ├── board-tokens.ts       # Claim token management
+│   └── voter-email.ts        # Voter email storage
+└── types/
+    └── database.ts           # TypeScript types
+```
+
+---
+
+## 🎯 Next Steps
+
+### Priority 1: Validation
+- [ ] Post on Indie Hackers (share the live product)
+- [ ] Share in Twitter/X communities
+- [ ] Goal: 10 real users + 5 conversations
+
+### Priority 2: Claim Flow (Auth)
+- [ ] Set up Supabase Auth with magic links
+- [ ] "Claim this board" flow
+- [ ] Link board to user account (set user_id, clear expires_at)
+- [ ] Access boards from any device after claiming
+
+### Priority 3: Changelog
+- [ ] Create changelog_entries table
+- [ ] Changelog page at /b/[slug]/changelog
+- [ ] Admin UI to create changelog entries
+- [ ] Link shipped items to completed feedback
+
+### Priority 4: Polish
+- [ ] "Powered by FeedbackApp" badge linking to landing page
+- [ ] Email notifications (optional)
+- [ ] Board settings page
+- [ ] Delete feedback (admin)
+
+---
+
+## Database Schema
 
 ```sql
--- Users (handled by Supabase Auth)
-
 -- Boards (login-last: user_id is NULL until claimed)
 boards (
   id uuid primary key,
@@ -147,7 +205,7 @@ posts (
   created_at timestamp
 )
 
--- Votes
+-- Votes (with auto-update trigger for vote_count)
 votes (
   id uuid primary key,
   post_id uuid references posts,
@@ -156,7 +214,7 @@ votes (
   unique(post_id, voter_email)
 )
 
--- Changelog
+-- Changelog (not yet implemented)
 changelog_entries (
   id uuid primary key,
   board_id uuid references boards,
@@ -181,30 +239,6 @@ changelog_entries (
 | Free | $0 | **Unlimited** boards, posts, votes, roadmap, changelog + "Powered by" badge |
 | Pro | $19/mo | Remove badge, custom domain, team collaboration, Slack integration |
 
-### Why This Works
-1. Low marginal cost per user (just database rows)
-2. Self-onboarding (no support overhead)
-3. Virality built-in (every board = free ad)
-4. Free users spread word of mouth → paid conversions
-
----
-
-## Growth Strategy
-
-1. **Viral loop:** "Powered by [Product]" badge on every free board
-2. **Build in public:** Share progress on Twitter/Indie Hackers
-3. **SEO:** Public roadmaps and changelogs are indexable
-4. **Community:** Be active where indie makers hang out
-
----
-
-## Validation Checklist
-
-- [ ] 10+ email signups on landing page
-- [ ] 5+ conversations with potential users
-- [ ] Understand their current workarounds
-- [ ] Confirm willingness to pay
-
 ---
 
 ## Key Principles
@@ -213,61 +247,3 @@ changelog_entries (
 2. **Ship fast, learn fast** - A shipped MVP beats a perfect plan
 3. **Talk to users obsessively** - PM skills are the superpower here
 4. **Don't fall in love** - Fall in love with the process, not the idea
-
----
-
-## 🎯 Next Steps (Updated: Dec 30, 2024)
-
-### Immediate Priority: Get Live & Validate
-
-**Step 1: Connect Email Collection** ✅ DONE
-- ~~Create `waitlist` table in Supabase~~
-- ~~Wire up landing page form to save emails~~
-- ~~Add success toast/message~~
-
-**Step 2: Deploy to Vercel** ✅ DONE
-- ~~Connect GitHub repo to Vercel~~
-- ~~Add Supabase env variables~~
-- ~~Your landing page goes live!~~
-
-**Step 3: Start Validation** 🟢 LOW RISK ← YOU ARE HERE
-- Post on Indie Hackers (show landing page, ask for feedback)
-- Share in relevant Twitter/X communities
-- Goal: 10 email signups + 5 user conversations
-
-### After Validation: Build Core MVP (Login-Last!)
-
-**Step 4: Database Schema** 🟡 MEDIUM RISK
-- Set up tables: boards (with claim_token, expires_at), posts, votes
-- Configure RLS for public read, token-based write
-
-**Step 5: Anonymous Board Creation** 🟢 LOW RISK
-- Create board form → generates slug + claim_token
-- Store claim_token in localStorage
-- Board page at /b/[slug]
-
-**Step 6: Feedback + Voting** 🟢 LOW RISK
-- Public feedback submission (email only)
-- Email-based voting
-- "Powered by" badge
-
-**Step 7: Claim Flow (Auth)** 🟡 MEDIUM RISK
-- Magic link to claim board
-- Admin actions require auth
-
----
-
-### 📊 Current Progress
-
-| Phase | Status |
-|-------|--------|
-| Project setup | ✅ Done |
-| Landing page | ✅ Done |
-| Email collection | ✅ Done |
-| Deploy to Vercel | ✅ Done |
-| Validation | ⏳ Next |
-| Database schema | 🔜 Pending |
-| Anonymous board creation | 🔜 Pending |
-| Feedback + voting | 🔜 Pending |
-| Claim flow (auth) | 🔜 Pending |
-| Roadmap view | 🔜 Pending |
