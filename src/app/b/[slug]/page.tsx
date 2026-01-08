@@ -125,7 +125,7 @@ export default function BoardPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Feedback list */}
           <div className="lg:col-span-2 order-2 lg:order-1">
-            <FeedbackList posts={posts} />
+            <FeedbackList posts={posts} onVoteChange={fetchData} />
           </div>
 
           {/* Submit form */}

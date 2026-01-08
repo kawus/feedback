@@ -1,12 +1,14 @@
 "use client"
 
 import { Post } from "@/types/database"
+import { VoteButton } from "./vote-button"
 
 interface FeedbackListProps {
   posts: Post[]
+  onVoteChange?: () => void
 }
 
-export function FeedbackList({ posts }: FeedbackListProps) {
+export function FeedbackList({ posts, onVoteChange }: FeedbackListProps) {
   if (posts.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
@@ -19,13 +21,13 @@ export function FeedbackList({ posts }: FeedbackListProps) {
   return (
     <div className="space-y-4">
       {posts.map((post) => (
-        <FeedbackItem key={post.id} post={post} />
+        <FeedbackItem key={post.id} post={post} onVoteChange={onVoteChange} />
       ))}
     </div>
   )
 }
 
-function FeedbackItem({ post }: { post: Post }) {
+function FeedbackItem({ post, onVoteChange }: { post: Post; onVoteChange?: () => void }) {
   // Format the date nicely
   const formattedDate = new Date(post.created_at).toLocaleDateString("en-US", {
     month: "short",
@@ -33,15 +35,14 @@ function FeedbackItem({ post }: { post: Post }) {
   })
 
   return (
-    <div className="bg-card border rounded-lg p-4 shadow-[var(--shadow-sm)] transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]">
+    <div className="bg-card border rounded-lg p-4 shadow-[var(--shadow-sm)]">
       <div className="flex gap-4">
-        {/* Vote count placeholder - will be clickable in future */}
-        <div className="flex flex-col items-center justify-center min-w-[48px] py-2 px-3 bg-muted rounded-md">
-          <span className="text-lg font-semibold text-foreground">
-            {post.vote_count}
-          </span>
-          <span className="text-xs text-muted-foreground">votes</span>
-        </div>
+        {/* Vote button */}
+        <VoteButton
+          postId={post.id}
+          voteCount={post.vote_count}
+          onVoteChange={onVoteChange}
+        />
 
         {/* Content */}
         <div className="flex-1 min-w-0">

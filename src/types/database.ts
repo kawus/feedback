@@ -28,3 +28,10 @@ export interface Post {
 }
 
 export type PostStatus = 'open' | 'planned' | 'in_progress' | 'done';
+
+export interface Vote {
+  id: string;
+  post_id: string;
+  voter_email: string;
+  created_at: string;
+}
