@@ -116,10 +116,18 @@ export default function BoardPage() {
         {/* Claim banner for board owners */}
         {isOwner && <ClaimBanner />}
 
-        {/* Board title */}
-        <h1 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight mb-8">
-          {board.name}
-        </h1>
+        {/* Board title + roadmap link */}
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
+            {board.name}
+          </h1>
+          <Link
+            href={`/b/${slug}/roadmap`}
+            className="text-sm text-primary hover:underline"
+          >
+            View Roadmap →
+          </Link>
+        </div>
 
         {/* Two-column layout on desktop */}
         <div className="grid lg:grid-cols-3 gap-8">
