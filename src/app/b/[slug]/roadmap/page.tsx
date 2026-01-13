@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
+import { PoweredByBadge } from "@/components/boards/powered-by-badge"
 import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { Board, Post, PostStatus } from "@/types/database"
@@ -102,12 +103,20 @@ export default function RoadmapPage() {
               FeedbackApp
             </span>
           </Link>
-          <Link
-            href={`/b/${slug}`}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            ← Back to feedback
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href={`/b/${slug}`}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Feedback
+            </Link>
+            <Link
+              href={`/b/${slug}/changelog`}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Changelog
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -151,15 +160,7 @@ export default function RoadmapPage() {
           ))}
         </div>
 
-        {/* Powered by badge */}
-        <div className="mt-16 pt-8 border-t border-border">
-          <p className="text-sm text-muted-foreground text-center">
-            Powered by{" "}
-            <Link href="/" className="text-primary hover:underline">
-              FeedbackApp
-            </Link>
-          </p>
-        </div>
+        <PoweredByBadge />
       </main>
     </div>
   )

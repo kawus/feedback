@@ -6,21 +6,25 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { isMyBoard } from "@/lib/board-tokens"
+import { useAuth } from "@/components/auth/auth-provider"
 import { Board, Post } from "@/types/database"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { SubmitFeedbackForm } from "@/components/boards/submit-feedback-form"
 import { FeedbackList } from "@/components/boards/feedback-list"
 import { ClaimBanner } from "@/components/boards/claim-banner"
+import { PoweredByBadge } from "@/components/boards/powered-by-badge"
 
 export default function BoardPage() {
   const params = useParams()
   const slug = params.slug as string
+  const { user } = useAuth()
 
   const [board, setBoard] = useState<Board | null>(null)
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [notFoundState, setNotFoundState] = useState(false)
   const [isOwner, setIsOwner] = useState(false)
+  const [hasClaimToken, setHasClaimToken] = useState(false)
 
   // Fetch board and posts
   const fetchData = useCallback(async () => {
@@ -44,8 +48,13 @@ export default function BoardPage() {
 
     setBoard(boardData)
 
-    // Check if current user owns this board (has claim token in localStorage)
-    setIsOwner(isMyBoard(slug))
+    // Check ownership: either via claim token (localStorage) or logged-in user
+    const hasToken = isMyBoard(slug)
+    setHasClaimToken(hasToken)
+
+    // User owns board if they have the claim token OR if they're logged in and board belongs to them
+    const ownsViaAuth = user && boardData.user_id === user.id
+    setIsOwner(hasToken || !!ownsViaAuth)
 
     // Fetch posts for this board
     const { data: postsData } = await supabase
@@ -56,7 +65,7 @@ export default function BoardPage() {
 
     setPosts(postsData || [])
     setLoading(false)
-  }, [slug])
+  }, [slug, user])
 
   useEffect(() => {
     fetchData()
@@ -113,20 +122,36 @@ export default function BoardPage() {
 
       {/* Main content */}
       <main className="mx-auto max-w-5xl px-6 py-8">
-        {/* Claim banner for board owners */}
-        {isOwner && <ClaimBanner />}
+        {/* Claim banner - only show for unclaimed boards (user has token but not logged in) */}
+        {hasClaimToken && <ClaimBanner boardSlug={slug} />}
 
-        {/* Board title + roadmap link */}
+        {/* Board title + navigation */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
             {board.name}
           </h1>
-          <Link
-            href={`/b/${slug}/roadmap`}
-            className="text-sm text-primary hover:underline"
-          >
-            View Roadmap →
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href={`/b/${slug}/roadmap`}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Roadmap
+            </Link>
+            <Link
+              href={`/b/${slug}/changelog`}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Changelog
+            </Link>
+            {isOwner && (
+              <Link
+                href={`/b/${slug}/settings`}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Settings
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Two-column layout on desktop */}
@@ -154,15 +179,7 @@ export default function BoardPage() {
           </div>
         </div>
 
-        {/* Powered by badge */}
-        <div className="mt-16 pt-8 border-t border-border">
-          <p className="text-sm text-muted-foreground text-center">
-            Powered by{" "}
-            <Link href="/" className="text-primary hover:underline">
-              FeedbackApp
-            </Link>
-          </p>
-        </div>
+        <PoweredByBadge />
       </main>
     </div>
   )

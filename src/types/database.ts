@@ -35,3 +35,12 @@ export interface Vote {
   voter_email: string;
   created_at: string;
 }
+
+export interface ChangelogEntry {
+  id: string;
+  board_id: string;
+  title: string;
+  content: string | null;
+  published_at: string;
+  created_at: string;
+}

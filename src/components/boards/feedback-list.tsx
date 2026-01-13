@@ -1,8 +1,10 @@
 "use client"
 
+import { useState } from "react"
 import { Post } from "@/types/database"
 import { VoteButton } from "./vote-button"
 import { StatusSelector } from "./status-selector"
+import { getBoardToken } from "@/lib/board-tokens"
 
 interface FeedbackListProps {
   posts: Post[]
@@ -44,11 +46,33 @@ interface FeedbackItemProps {
 }
 
 function FeedbackItem({ post, boardSlug, isOwner, onVoteChange }: FeedbackItemProps) {
+  const [deleting, setDeleting] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+
   // Format the date nicely
   const formattedDate = new Date(post.created_at).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
   })
+
+  const handleDelete = async () => {
+    const claimToken = getBoardToken(boardSlug)
+    if (!claimToken) return
+
+    setDeleting(true)
+
+    const response = await fetch(`/api/posts/${post.id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ claimToken }),
+    })
+
+    if (response.ok) {
+      onVoteChange?.()
+    }
+    setDeleting(false)
+    setShowConfirm(false)
+  }
 
   return (
     <div className="bg-card border rounded-lg p-4 shadow-[var(--shadow-sm)]">
@@ -70,7 +94,38 @@ function FeedbackItem({ post, boardSlug, isOwner, onVoteChange }: FeedbackItemPr
               {post.description}
             </p>
           )}
-          <p className="text-xs text-muted-foreground mt-2">{formattedDate}</p>
+          <div className="flex items-center gap-3 mt-2">
+            <p className="text-xs text-muted-foreground">{formattedDate}</p>
+            {isOwner && (
+              <>
+                {!showConfirm ? (
+                  <button
+                    onClick={() => setShowConfirm(true)}
+                    className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    Delete
+                  </button>
+                ) : (
+                  <span className="text-xs flex items-center gap-2">
+                    <button
+                      onClick={handleDelete}
+                      disabled={deleting}
+                      className="text-destructive hover:underline"
+                    >
+                      {deleting ? "Deleting..." : "Confirm"}
+                    </button>
+                    <button
+                      onClick={() => setShowConfirm(false)}
+                      disabled={deleting}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      Cancel
+                    </button>
+                  </span>
+                )}
+              </>
+            )}
+          </div>
         </div>
 
         {/* Status: selector for owner, badge for others */}

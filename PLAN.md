@@ -56,7 +56,7 @@ Inspired by Tally's approach: experience the magic first, auth only when needed.
 - [x] **Upvoting** - Users vote on requests (email-based)
 - [x] **Status management** - Owner can set Planned/In Progress/Done
 - [x] **Public roadmap** - Kanban: Planned → In Progress → Done
-- [ ] **Changelog** - Announce shipped features
+- [x] **Changelog** - Announce shipped features
 
 ### Explicitly NOT in v1
 - User authentication complexity (use magic links)
@@ -82,7 +82,7 @@ Inspired by Tally's approach: experience the magic first, auth only when needed.
 
 ---
 
-## 📊 Current Progress (Updated: Jan 8, 2025)
+## 📊 Current Progress (Updated: Jan 13, 2025)
 
 | Phase | Status |
 |-------|--------|
@@ -96,8 +96,10 @@ Inspired by Tally's approach: experience the magic first, auth only when needed.
 | Voting system | ✅ Done |
 | Status management (owner only) | ✅ Done |
 | Roadmap view | ✅ Done |
-| Claim flow (magic link auth) | 🔜 Next |
-| Changelog | 🔜 Pending |
+| Changelog | ✅ Done |
+| Claim flow (magic link auth) | ✅ Done |
+| Powered by badge | ✅ Done |
+| Board settings/delete | ✅ Done |
 
 ---
 
@@ -108,20 +110,28 @@ Inspired by Tally's approach: experience the magic first, auth only when needed.
 - `boards` - Feedback boards with claim_token for ownership
 - `posts` - Feature requests with status field
 - `votes` - Email-based voting (one vote per email per post)
+- `changelog_entries` - Product update announcements
 
 ### Pages
 - `/` - Landing page with waitlist signup
 - `/create` - Create a new board (no login required)
 - `/b/[slug]` - Board view with feedback list
 - `/b/[slug]/roadmap` - Kanban roadmap view
+- `/b/[slug]/changelog` - Timeline of product updates
+- `/b/[slug]/settings` - Board settings (owner only)
+- `/auth/callback` - Magic link auth handler
 - `/design` - Design system documentation
 
 ### Key Features
 - **Login-last architecture** - Create and manage boards without auth
 - **Claim token system** - localStorage proves ownership
+- **Magic link auth** - Claim boards permanently via email
 - **Email-based voting** - No accounts needed
 - **Status management** - Owner can change Open → Planned → In Progress → Done
-- **Server-side validation** - API route validates claim_token for status changes
+- **Changelog** - Announce shipped features with timeline view
+- **Delete posts/boards** - Owner can delete feedback and entire boards
+- **Powered by badge** - Viral marketing badge on all public pages
+- **Server-side validation** - API routes validate claim_token or user auth
 
 ### Files Structure
 ```
@@ -129,21 +139,33 @@ src/
 ├── app/
 │   ├── page.tsx              # Landing page
 │   ├── create/page.tsx       # Board creation
+│   ├── auth/callback/page.tsx # Magic link handler
 │   ├── b/[slug]/
 │   │   ├── page.tsx          # Board view
 │   │   ├── roadmap/page.tsx  # Roadmap kanban
+│   │   ├── changelog/page.tsx # Changelog timeline
+│   │   ├── settings/page.tsx # Board settings
 │   │   └── not-found.tsx     # 404 page
-│   └── api/posts/[id]/
-│       └── route.ts          # Status update API
-├── components/boards/
-│   ├── create-board-form.tsx
-│   ├── submit-feedback-form.tsx
-│   ├── feedback-list.tsx
-│   ├── vote-button.tsx
-│   ├── status-selector.tsx
-│   └── claim-banner.tsx
+│   └── api/
+│       ├── posts/[id]/route.ts    # Status update + delete
+│       └── boards/
+│           ├── [id]/route.ts      # Board delete
+│           └── claim/route.ts     # Claim board
+├── components/
+│   ├── auth/
+│   │   └── auth-provider.tsx      # Auth context
+│   └── boards/
+│       ├── create-board-form.tsx
+│       ├── submit-feedback-form.tsx
+│       ├── create-changelog-form.tsx
+│       ├── feedback-list.tsx
+│       ├── vote-button.tsx
+│       ├── status-selector.tsx
+│       ├── claim-banner.tsx
+│       └── powered-by-badge.tsx
 ├── lib/
 │   ├── supabase.ts           # Browser client
+│   ├── auth.ts               # Magic link helpers
 │   ├── board-tokens.ts       # Claim token management
 │   └── voter-email.ts        # Voter email storage
 └── types/
@@ -154,28 +176,18 @@ src/
 
 ## 🎯 Next Steps
 
-### Priority 1: Validation
+### Priority 1: Validation (NOW!)
 - [ ] Post on Indie Hackers (share the live product)
 - [ ] Share in Twitter/X communities
 - [ ] Goal: 10 real users + 5 conversations
 
-### Priority 2: Claim Flow (Auth)
-- [ ] Set up Supabase Auth with magic links
-- [ ] "Claim this board" flow
-- [ ] Link board to user account (set user_id, clear expires_at)
-- [ ] Access boards from any device after claiming
-
-### Priority 3: Changelog
-- [ ] Create changelog_entries table
-- [ ] Changelog page at /b/[slug]/changelog
-- [ ] Admin UI to create changelog entries
-- [ ] Link shipped items to completed feedback
-
-### Priority 4: Polish
-- [ ] "Powered by FeedbackApp" badge linking to landing page
-- [ ] Email notifications (optional)
-- [ ] Board settings page
-- [ ] Delete feedback (admin)
+### Future Enhancements (After Validation)
+- [ ] Email notifications (new feedback, status changes)
+- [ ] Edit board name
+- [ ] Edit/delete changelog entries
+- [ ] Link changelog entries to completed feedback posts
+- [ ] Board expiry warning emails (7 days before)
+- [ ] Multi-board support per user
 
 ---
 
@@ -214,13 +226,14 @@ votes (
   unique(post_id, voter_email)
 )
 
--- Changelog (not yet implemented)
+-- Changelog entries
 changelog_entries (
   id uuid primary key,
-  board_id uuid references boards,
-  title text,
+  board_id uuid references boards on delete cascade,
+  title text not null,
   content text,
-  published_at timestamp
+  published_at timestamp with time zone default now(),
+  created_at timestamp with time zone default now()
 )
 ```
 
