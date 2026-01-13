@@ -19,10 +19,31 @@ function AuthCallbackContent() {
         return
       }
 
-      // Get the auth code from URL (Supabase adds this)
-      const { error: authError } = await supabase.auth.getSession()
+      // For magic links, Supabase puts tokens in the URL hash
+      // We need to let Supabase client handle this automatically
+      // by checking if there's a hash and letting it process
+      const hashParams = new URLSearchParams(window.location.hash.substring(1))
+      const accessToken = hashParams.get("access_token")
+      const refreshToken = hashParams.get("refresh_token")
 
-      if (authError) {
+      // If we have tokens in the hash, set the session
+      if (accessToken && refreshToken) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        })
+
+        if (sessionError) {
+          setStatus("error")
+          setMessage("Failed to verify your email. Please try again.")
+          return
+        }
+      }
+
+      // Now get the session to verify we're authenticated
+      const { data: { session }, error: authError } = await supabase.auth.getSession()
+
+      if (authError || !session) {
         setStatus("error")
         setMessage("Failed to verify your email. Please try again.")
         return
@@ -35,10 +56,13 @@ function AuthCallbackContent() {
       if (claimSlug && claimToken) {
         setMessage("Claiming your board...")
 
-        // Call API to claim the board
+        // Call API to claim the board - pass the access token
         const response = await fetch("/api/boards/claim", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
           body: JSON.stringify({ slug: claimSlug, claimToken }),
         })
 
