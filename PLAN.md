@@ -181,6 +181,14 @@ src/
 - [ ] Share in Twitter/X communities
 - [ ] Goal: 10 real users + 5 conversations
 
+### Priority 2: Role Clarity (Next Session)
+Improve UX so users understand who can do what:
+
+- [ ] **Owner badge** - Show "Admin" badge near board title for owners (`src/app/b/[slug]/page.tsx`)
+- [ ] **Read-only status** - Make visitor status badges look non-interactive (`src/components/boards/feedback-list.tsx`)
+- [ ] **Public action hints** - Add "Anyone can submit feedback" text (`src/components/boards/submit-feedback-form.tsx`)
+- [ ] **Changelog clarity** - Label admin form "Post an update (admin only)" (`src/app/b/[slug]/changelog/page.tsx`)
+
 ### Future Enhancements (After Validation)
 - [ ] Email notifications (new feedback, status changes)
 - [ ] Edit board name
