@@ -9,7 +9,9 @@ import { isMyBoard, getBoardToken, removeBoardToken } from "@/lib/board-tokens"
 import { useAuth } from "@/components/auth/auth-provider"
 import { Board } from "@/types/database"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { sendMagicLink } from "@/lib/auth"
 
 export default function SettingsPage() {
   const params = useParams()
@@ -23,6 +25,10 @@ export default function SettingsPage() {
   const [isOwner, setIsOwner] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [claimEmail, setClaimEmail] = useState("")
+  const [claimLoading, setClaimLoading] = useState(false)
+  const [claimError, setClaimError] = useState("")
+  const [claimSuccess, setClaimSuccess] = useState(false)
 
   const fetchData = useCallback(async () => {
     if (!supabase) {
@@ -55,6 +61,26 @@ export default function SettingsPage() {
   useEffect(() => {
     fetchData()
   }, [fetchData])
+
+  const handleClaim = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setClaimLoading(true)
+    setClaimError("")
+
+    const claimToken = getBoardToken(slug)
+    const redirectUrl = `${window.location.origin}/auth/callback?claim=${slug}&token=${claimToken}`
+
+    const { error } = await sendMagicLink(claimEmail, redirectUrl)
+
+    setClaimLoading(false)
+
+    if (error) {
+      setClaimError(error.message)
+      return
+    }
+
+    setClaimSuccess(true)
+  }
 
   const handleDelete = async () => {
     if (!board || !supabase) return
@@ -193,6 +219,56 @@ export default function SettingsPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Claim Board - only show for unclaimed boards */}
+          {!board.user_id && (
+            <Card className="border-primary/50">
+              <CardHeader>
+                <CardTitle className="text-lg">Claim This Board</CardTitle>
+                <CardDescription>
+                  Link this board to your account to access it from any device.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {claimSuccess ? (
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                    <p className="font-semibold text-green-800 dark:text-green-200 text-sm">
+                      Check your email!
+                    </p>
+                    <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                      We sent a link to <strong>{claimEmail}</strong>. Click it to claim this board.
+                    </p>
+                  </div>
+                ) : (
+                  <form onSubmit={handleClaim} className="space-y-4">
+                    <div className="space-y-2">
+                      <label htmlFor="claim-email" className="text-sm font-medium text-foreground">
+                        Your email
+                      </label>
+                      <Input
+                        id="claim-email"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={claimEmail}
+                        onChange={(e) => setClaimEmail(e.target.value)}
+                        required
+                        disabled={claimLoading}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        We&apos;ll send you a magic link. No password needed.
+                      </p>
+                    </div>
+                    {claimError && (
+                      <p className="text-destructive text-sm">{claimError}</p>
+                    )}
+                    <Button type="submit" disabled={claimLoading || !claimEmail}>
+                      {claimLoading ? "Sending..." : "Send magic link"}
+                    </Button>
+                  </form>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Danger Zone */}
           <Card className="border-destructive/50">
