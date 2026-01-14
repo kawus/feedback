@@ -61,46 +61,36 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
 
     const normalizedEmail = emailToUse.trim().toLowerCase()
 
-    // Check current vote status from database (source of truth)
-    const { data: existingVote } = await supabase
+    // Atomic approach: Try to insert first, if duplicate key error then delete
+    // This avoids race conditions between checking and acting
+    const { error: insertError } = await supabase
       .from("votes")
-      .select("id")
-      .eq("post_id", postId)
-      .eq("voter_email", normalizedEmail)
-      .single()
+      .insert({ post_id: postId, voter_email: normalizedEmail })
 
-    const currentlyVoted = !!existingVote
+    if (insertError) {
+      if (insertError.code === "23505") {
+        // Duplicate key means vote exists - remove it
+        const { error: deleteError } = await supabase
+          .from("votes")
+          .delete()
+          .eq("post_id", postId)
+          .eq("voter_email", normalizedEmail)
 
-    if (currentlyVoted) {
-      // Remove vote
-      const { error: deleteError } = await supabase
-        .from("votes")
-        .delete()
-        .eq("post_id", postId)
-        .eq("voter_email", normalizedEmail)
-
-      if (deleteError) {
-        setError("Failed to remove vote")
-        setLoading(false)
-        return
-      }
-      setHasVoted(false)
-    } else {
-      // Add vote
-      const { error: insertError } = await supabase
-        .from("votes")
-        .insert({ post_id: postId, voter_email: normalizedEmail })
-
-      if (insertError) {
-        // Already voted (duplicate key) - shouldn't happen now but handle gracefully
-        if (insertError.code === "23505") {
-          setHasVoted(true)
-        } else {
-          setError("Failed to vote")
+        if (deleteError) {
+          console.error("Delete vote error:", deleteError)
+          setError("Failed to remove vote")
+          setLoading(false)
+          return
         }
+        setHasVoted(false)
+      } else {
+        console.error("Insert vote error:", insertError)
+        setError("Failed to vote")
         setLoading(false)
         return
       }
+    } else {
+      // Insert succeeded - new vote added
       setHasVoted(true)
       saveVoterEmail(normalizedEmail)
       setVoterEmail(normalizedEmail)
