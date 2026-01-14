@@ -63,25 +63,30 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
     console.log("[Vote] Starting vote action for:", normalizedEmail, "postId:", postId)
 
     // Atomic approach: Try to insert first, if duplicate key error then delete
-    // This avoids race conditions between checking and acting
     const { error: insertError } = await supabase
       .from("votes")
       .insert({ post_id: postId, voter_email: normalizedEmail })
 
-    console.log("[Vote] Insert result:", insertError ? `Error: ${insertError.code} - ${insertError.message}` : "Success")
+    // Log full error object to see what we're getting
+    console.log("[Vote] Insert result:", insertError ? JSON.stringify(insertError) : "Success")
 
     if (insertError) {
-      if (insertError.code === "23505") {
+      // Check for duplicate key: could be code "23505" OR message contains "duplicate"
+      const isDuplicate = insertError.code === "23505" ||
+                          insertError.message?.toLowerCase().includes("duplicate")
+
+      console.log("[Vote] Is duplicate?", isDuplicate)
+
+      if (isDuplicate) {
         console.log("[Vote] Duplicate detected, attempting delete...")
         // Duplicate key means vote exists - remove it
-        const { data: deleteData, error: deleteError } = await supabase
+        const { error: deleteError } = await supabase
           .from("votes")
           .delete()
           .eq("post_id", postId)
           .eq("voter_email", normalizedEmail)
-          .select()
 
-        console.log("[Vote] Delete result:", deleteError ? `Error: ${deleteError.message}` : "Success", "Deleted rows:", deleteData)
+        console.log("[Vote] Delete result:", deleteError ? JSON.stringify(deleteError) : "Success")
 
         if (deleteError) {
           console.error("Delete vote error:", deleteError)
