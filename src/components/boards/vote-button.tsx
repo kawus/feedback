@@ -13,18 +13,33 @@ interface VoteButtonProps {
 }
 
 export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps) {
-  const [count, setCount] = useState(voteCount)
+  // Track voter email in state so we can react to changes
+  const [voterEmail, setVoterEmail] = useState<string | null>(null)
+  const [count, setCount] = useState(Math.max(0, voteCount))
   const [hasVoted, setHasVoted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [showEmailInput, setShowEmailInput] = useState(false)
   const [email, setEmail] = useState("")
   const [error, setError] = useState("")
 
-  // Check if user has already voted (on mount and when email changes)
+  // Sync count from props when parent refetches (bounds check: never negative)
+  useEffect(() => {
+    setCount(Math.max(0, voteCount))
+  }, [voteCount])
+
+  // Load voter email from localStorage on mount
+  useEffect(() => {
+    const email = getVoterEmail()
+    setVoterEmail(email)
+  }, [])
+
+  // Check if user has already voted - re-run when postId or voterEmail changes
   useEffect(() => {
     async function checkVote() {
-      const voterEmail = getVoterEmail()
-      if (!voterEmail || !supabase) return
+      if (!voterEmail || !supabase) {
+        setHasVoted(false)
+        return
+      }
 
       const { data } = await supabase
         .from("votes")
@@ -36,13 +51,15 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
       setHasVoted(!!data)
     }
     checkVote()
-  }, [postId])
+  }, [postId, voterEmail])
 
-  const handleVote = async (voterEmail: string) => {
+  const handleVote = async (emailToUse: string) => {
     if (!supabase) return
 
     setLoading(true)
     setError("")
+
+    const normalizedEmail = emailToUse.trim().toLowerCase()
 
     if (hasVoted) {
       // Remove vote
@@ -50,7 +67,7 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
         .from("votes")
         .delete()
         .eq("post_id", postId)
-        .eq("voter_email", voterEmail)
+        .eq("voter_email", normalizedEmail)
 
       if (deleteError) {
         setError("Failed to remove vote")
@@ -58,16 +75,17 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
         return
       }
 
-      setCount((c) => c - 1)
+      // Update hasVoted state, but DON'T update count locally
+      // Let parent refetch to get accurate count from database
       setHasVoted(false)
     } else {
       // Add vote
       const { error: insertError } = await supabase
         .from("votes")
-        .insert({ post_id: postId, voter_email: voterEmail })
+        .insert({ post_id: postId, voter_email: normalizedEmail })
 
       if (insertError) {
-        // Already voted (shouldn't happen but handle gracefully)
+        // Already voted (duplicate key)
         if (insertError.code === "23505") {
           setHasVoted(true)
         } else {
@@ -77,18 +95,20 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
         return
       }
 
-      setCount((c) => c + 1)
+      // Update hasVoted state and save email
       setHasVoted(true)
-      saveVoterEmail(voterEmail)
+      saveVoterEmail(normalizedEmail)
+      setVoterEmail(normalizedEmail)
+      // DON'T update count locally - let parent refetch
     }
 
     setLoading(false)
     setShowEmailInput(false)
+    // Trigger parent to refetch posts with accurate vote_count from database
     onVoteChange?.()
   }
 
   const handleClick = () => {
-    const voterEmail = getVoterEmail()
     if (voterEmail) {
       handleVote(voterEmail)
     } else {
