@@ -75,8 +75,7 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
         return
       }
 
-      // Immediate feedback + state update
-      setCount((c) => Math.max(0, c - 1))
+      // Update local voted state (count comes from realtime)
       setHasVoted(false)
     } else {
       // Add vote
@@ -95,8 +94,7 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
         return
       }
 
-      // Immediate feedback + state update
-      setCount((c) => c + 1)
+      // Update local voted state (count comes from realtime)
       setHasVoted(true)
       saveVoterEmail(normalizedEmail)
       setVoterEmail(normalizedEmail)
@@ -104,8 +102,7 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
 
     setLoading(false)
     setShowEmailInput(false)
-    // Trigger parent to refetch posts with accurate vote_count from database
-    onVoteChange?.()
+    // Note: vote count updates via realtime subscription, no refetch needed
   }
 
   const handleClick = () => {
