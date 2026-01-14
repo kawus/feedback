@@ -97,6 +97,8 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
       setHasVoted(true)
       saveVoterEmail(normalizedEmail)
       setVoterEmail(normalizedEmail)
+      // Trigger refresh to update vote count
+      onVoteChange?.()
     }
 
     setLoading(false)

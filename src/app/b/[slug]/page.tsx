@@ -134,46 +134,8 @@ export default function BoardPage() {
           )
         }
       )
-      // Listen for new votes - increment count
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'votes',
-        },
-        (payload) => {
-          const postId = (payload.new as { post_id: string }).post_id
-          setPosts((currentPosts) =>
-            currentPosts.map((post) =>
-              post.id === postId
-                ? { ...post, vote_count: post.vote_count + 1 }
-                : post
-            )
-          )
-        }
-      )
-      // Listen for removed votes - decrement count
-      // Note: Requires REPLICA IDENTITY FULL on votes table for payload.old to have post_id
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'votes',
-        },
-        (payload) => {
-          const postId = (payload.old as { post_id: string }).post_id
-          if (!postId) return // Fallback handled by onVoteChange callback
-          setPosts((currentPosts) =>
-            currentPosts.map((post) =>
-              post.id === postId
-                ? { ...post, vote_count: Math.max(0, post.vote_count - 1) }
-                : post
-            )
-          )
-        }
-      )
+      // Vote count changes are handled by database triggers that update posts.vote_count
+      // The posts UPDATE listener above will catch those changes automatically
       .subscribe()
 
     // Cleanup subscription on unmount
