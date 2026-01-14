@@ -83,3 +83,31 @@ Premium design tokens defined in `globals.css`:
 - **Claim token system** - localStorage stores ownership until claimed
 - **Dual ownership check** - Validates via claim token OR authenticated user
 - See PLAN.md for full architecture details and database schema
+
+## Database Triggers (Required for Voting)
+The voting system requires these PostgreSQL triggers to keep `posts.vote_count` in sync:
+
+```sql
+-- Functions must use SECURITY DEFINER to bypass RLS
+CREATE OR REPLACE FUNCTION increment_vote_count()
+RETURNS TRIGGER SECURITY DEFINER AS $$
+BEGIN
+  UPDATE posts SET vote_count = vote_count + 1 WHERE id = NEW.post_id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION decrement_vote_count()
+RETURNS TRIGGER SECURITY DEFINER AS $$
+BEGIN
+  UPDATE posts SET vote_count = GREATEST(0, vote_count - 1) WHERE id = OLD.post_id;
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER vote_increment_trigger
+AFTER INSERT ON votes FOR EACH ROW EXECUTE FUNCTION increment_vote_count();
+
+CREATE TRIGGER vote_decrement_trigger
+AFTER DELETE ON votes FOR EACH ROW EXECUTE FUNCTION decrement_vote_count();
+```

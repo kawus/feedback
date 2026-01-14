@@ -189,6 +189,14 @@ Improve UX so users understand who can do what:
 - [x] **Public action hints** - Add "Anyone can submit feedback" text (`src/components/boards/submit-feedback-form.tsx`)
 - [x] **Changelog clarity** - Label admin form "Post an update (admin only)" (`src/app/b/[slug]/changelog/page.tsx`)
 
+### Priority 3: Vote Toggle Fix ✅ Done
+Fixed voting/unvoting functionality:
+
+- [x] **Toggle voting** - Click to vote, click again to unvote
+- [x] **Database triggers** - Triggers with SECURITY DEFINER to update vote_count
+- [x] **Realtime sync** - Posts UPDATE realtime syncs vote counts across users
+- [x] **Claim visibility** - Inline "Claim to keep" on board page
+
 ### Future Enhancements (After Validation)
 - [ ] Email notifications (new feedback, status changes)
 - [ ] Edit board name
