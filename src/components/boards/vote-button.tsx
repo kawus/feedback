@@ -60,6 +60,7 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
     setError("")
 
     const normalizedEmail = emailToUse.trim().toLowerCase()
+    console.log("[Vote] Checking for existing vote...")
 
     // Check if user already voted (explicit check-first approach)
     const { data: existingVote } = await supabase
@@ -69,8 +70,11 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
       .eq("voter_email", normalizedEmail)
       .maybeSingle()
 
+    console.log("[Vote] Existing vote:", existingVote)
+
     if (existingVote) {
       // User has voted - remove the vote
+      console.log("[Vote] Removing vote...")
       const { error: deleteError } = await supabase
         .from("votes")
         .delete()
@@ -78,28 +82,34 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
         .eq("voter_email", normalizedEmail)
 
       if (deleteError) {
+        console.log("[Vote] Delete error:", deleteError)
         setError("Failed to remove vote")
         setLoading(false)
         return
       }
+      console.log("[Vote] Vote removed successfully")
       setHasVoted(false)
     } else {
       // User hasn't voted - add a vote
+      console.log("[Vote] Adding vote...")
       const { error: insertError } = await supabase
         .from("votes")
         .insert({ post_id: postId, voter_email: normalizedEmail })
 
       if (insertError) {
+        console.log("[Vote] Insert error:", insertError)
         setError("Failed to vote")
         setLoading(false)
         return
       }
+      console.log("[Vote] Vote added successfully")
       setHasVoted(true)
       saveVoterEmail(normalizedEmail)
       setVoterEmail(normalizedEmail)
     }
 
     // Refresh to get updated count
+    console.log("[Vote] Calling onVoteChange...")
     onVoteChange?.()
     setLoading(false)
     setShowEmailInput(false)

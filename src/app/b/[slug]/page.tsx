@@ -38,6 +38,7 @@ export default function BoardPage() {
 
   // Fetch board and posts
   const fetchData = useCallback(async () => {
+    console.log("[Page] fetchData called")
     if (!supabase) {
       setLoading(false)
       return
@@ -73,6 +74,7 @@ export default function BoardPage() {
       .eq("board_id", boardData.id)
       .order("created_at", { ascending: false })
 
+    console.log("[Page] Posts fetched:", postsData?.map(p => ({ title: p.title, vote_count: p.vote_count })))
     setPosts(postsData || [])
     setLoading(false)
   }, [slug, user])
