@@ -60,25 +60,18 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
     setError("")
 
     const normalizedEmail = emailToUse.trim().toLowerCase()
-    console.log("[Vote] Starting vote action for:", normalizedEmail, "postId:", postId)
 
     // Atomic approach: Try to insert first, if duplicate key error then delete
     const { error: insertError } = await supabase
       .from("votes")
       .insert({ post_id: postId, voter_email: normalizedEmail })
 
-    // Log full error object to see what we're getting
-    console.log("[Vote] Insert result:", insertError ? JSON.stringify(insertError) : "Success")
-
     if (insertError) {
       // Check for duplicate key: could be code "23505" OR message contains "duplicate"
       const isDuplicate = insertError.code === "23505" ||
                           insertError.message?.toLowerCase().includes("duplicate")
 
-      console.log("[Vote] Is duplicate?", isDuplicate)
-
       if (isDuplicate) {
-        console.log("[Vote] Duplicate detected, attempting delete...")
         // Duplicate key means vote exists - remove it
         const { error: deleteError } = await supabase
           .from("votes")
@@ -86,18 +79,15 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
           .eq("post_id", postId)
           .eq("voter_email", normalizedEmail)
 
-        console.log("[Vote] Delete result:", deleteError ? JSON.stringify(deleteError) : "Success")
-
         if (deleteError) {
-          console.error("Delete vote error:", deleteError)
           setError("Failed to remove vote")
           setLoading(false)
           return
         }
         setHasVoted(false)
-        console.log("[Vote] Set hasVoted to false")
+        // Realtime DELETE doesn't include post_id, so trigger manual refresh
+        onVoteChange?.()
       } else {
-        console.error("Insert vote error:", insertError)
         setError("Failed to vote")
         setLoading(false)
         return
@@ -107,7 +97,6 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
       setHasVoted(true)
       saveVoterEmail(normalizedEmail)
       setVoterEmail(normalizedEmail)
-      console.log("[Vote] Vote added, set hasVoted to true")
     }
 
     setLoading(false)

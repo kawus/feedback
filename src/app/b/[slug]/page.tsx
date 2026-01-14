@@ -143,7 +143,6 @@ export default function BoardPage() {
           table: 'votes',
         },
         (payload) => {
-          console.log("[Realtime] Vote INSERT received:", payload)
           const postId = (payload.new as { post_id: string }).post_id
           setPosts((currentPosts) =>
             currentPosts.map((post) =>
@@ -155,6 +154,7 @@ export default function BoardPage() {
         }
       )
       // Listen for removed votes - decrement count
+      // Note: Requires REPLICA IDENTITY FULL on votes table for payload.old to have post_id
       .on(
         'postgres_changes',
         {
@@ -163,13 +163,8 @@ export default function BoardPage() {
           table: 'votes',
         },
         (payload) => {
-          console.log("[Realtime] Vote DELETE received:", payload)
           const postId = (payload.old as { post_id: string }).post_id
-          console.log("[Realtime] Extracted postId:", postId)
-          if (!postId) {
-            console.warn("[Realtime] No postId in DELETE payload - REPLICA IDENTITY FULL may not be set")
-            return
-          }
+          if (!postId) return // Fallback handled by onVoteChange callback
           setPosts((currentPosts) =>
             currentPosts.map((post) =>
               post.id === postId
