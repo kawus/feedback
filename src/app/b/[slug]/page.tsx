@@ -81,12 +81,13 @@ export default function BoardPage() {
     fetchData()
   }, [fetchData])
 
-  // Subscribe to realtime updates for posts (vote counts, new posts, deletions)
+  // Subscribe to realtime updates for posts and votes
   useEffect(() => {
     if (!supabase || !board?.id) return
 
     const channel = supabase
       .channel(`board-${board.id}`)
+      // Listen for post updates (status changes, etc.)
       .on(
         'postgres_changes',
         {
@@ -96,7 +97,6 @@ export default function BoardPage() {
           filter: `board_id=eq.${board.id}`,
         },
         (payload) => {
-          // Update the specific post in local state (includes vote_count changes)
           setPosts((currentPosts) =>
             currentPosts.map((post) =>
               post.id === payload.new.id
@@ -106,6 +106,7 @@ export default function BoardPage() {
           )
         }
       )
+      // Listen for new posts
       .on(
         'postgres_changes',
         {
@@ -115,10 +116,10 @@ export default function BoardPage() {
           filter: `board_id=eq.${board.id}`,
         },
         (payload) => {
-          // Add new post to the top of the list
           setPosts((currentPosts) => [payload.new as Post, ...currentPosts])
         }
       )
+      // Listen for deleted posts
       .on(
         'postgres_changes',
         {
@@ -128,9 +129,46 @@ export default function BoardPage() {
           filter: `board_id=eq.${board.id}`,
         },
         (payload) => {
-          // Remove deleted post from list
           setPosts((currentPosts) =>
             currentPosts.filter((post) => post.id !== payload.old.id)
+          )
+        }
+      )
+      // Listen for new votes - increment count
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'votes',
+        },
+        (payload) => {
+          const postId = (payload.new as { post_id: string }).post_id
+          setPosts((currentPosts) =>
+            currentPosts.map((post) =>
+              post.id === postId
+                ? { ...post, vote_count: post.vote_count + 1 }
+                : post
+            )
+          )
+        }
+      )
+      // Listen for removed votes - decrement count
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'votes',
+        },
+        (payload) => {
+          const postId = (payload.old as { post_id: string }).post_id
+          setPosts((currentPosts) =>
+            currentPosts.map((post) =>
+              post.id === postId
+                ? { ...post, vote_count: Math.max(0, post.vote_count - 1) }
+                : post
+            )
           )
         }
       )
