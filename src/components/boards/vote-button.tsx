@@ -61,7 +61,17 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
 
     const normalizedEmail = emailToUse.trim().toLowerCase()
 
-    if (hasVoted) {
+    // Check current vote status from database (source of truth)
+    const { data: existingVote } = await supabase
+      .from("votes")
+      .select("id")
+      .eq("post_id", postId)
+      .eq("voter_email", normalizedEmail)
+      .single()
+
+    const currentlyVoted = !!existingVote
+
+    if (currentlyVoted) {
       // Remove vote
       const { error: deleteError } = await supabase
         .from("votes")
@@ -74,8 +84,6 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
         setLoading(false)
         return
       }
-
-      // Update local voted state (count comes from realtime)
       setHasVoted(false)
     } else {
       // Add vote
@@ -84,7 +92,7 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
         .insert({ post_id: postId, voter_email: normalizedEmail })
 
       if (insertError) {
-        // Already voted (duplicate key)
+        // Already voted (duplicate key) - shouldn't happen now but handle gracefully
         if (insertError.code === "23505") {
           setHasVoted(true)
         } else {
@@ -93,8 +101,6 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
         setLoading(false)
         return
       }
-
-      // Update local voted state (count comes from realtime)
       setHasVoted(true)
       saveVoterEmail(normalizedEmail)
       setVoterEmail(normalizedEmail)
@@ -102,7 +108,6 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
 
     setLoading(false)
     setShowEmailInput(false)
-    // Note: vote count updates via realtime subscription, no refetch needed
   }
 
   const handleClick = () => {
