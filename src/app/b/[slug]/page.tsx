@@ -81,6 +81,69 @@ export default function BoardPage() {
     fetchData()
   }, [fetchData])
 
+  // Subscribe to realtime updates for posts (vote counts, new posts, deletions)
+  useEffect(() => {
+    if (!supabase || !board?.id) return
+
+    const channel = supabase
+      .channel(`board-${board.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'posts',
+          filter: `board_id=eq.${board.id}`,
+        },
+        (payload) => {
+          // Update the specific post in local state (includes vote_count changes)
+          setPosts((currentPosts) =>
+            currentPosts.map((post) =>
+              post.id === payload.new.id
+                ? { ...post, ...payload.new as Post }
+                : post
+            )
+          )
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'posts',
+          filter: `board_id=eq.${board.id}`,
+        },
+        (payload) => {
+          // Add new post to the top of the list
+          setPosts((currentPosts) => [payload.new as Post, ...currentPosts])
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'posts',
+          filter: `board_id=eq.${board.id}`,
+        },
+        (payload) => {
+          // Remove deleted post from list
+          setPosts((currentPosts) =>
+            currentPosts.filter((post) => post.id !== payload.old.id)
+          )
+        }
+      )
+      .subscribe()
+
+    // Cleanup subscription on unmount
+    return () => {
+      if (supabase) {
+        supabase.removeChannel(channel)
+      }
+    }
+  }, [board?.id])
+
   // Handle inline claim submission
   const handleClaim = async (e: React.FormEvent) => {
     e.preventDefault()

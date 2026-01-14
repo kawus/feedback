@@ -109,8 +109,13 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
   }
 
   const handleClick = () => {
-    if (voterEmail) {
-      handleVote(voterEmail)
+    // Prevent double-clicks while loading
+    if (loading) return
+
+    // Read fresh from localStorage (more reliable than state)
+    const storedEmail = getVoterEmail()
+    if (storedEmail) {
+      handleVote(storedEmail)
     } else {
       setShowEmailInput(true)
     }
