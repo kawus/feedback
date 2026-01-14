@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { supabase } from "@/lib/supabase"
+import { getVoterEmail, saveVoterEmail } from "@/lib/voter-email"
 
 interface SubmitFeedbackFormProps {
   boardId: string
@@ -21,6 +22,14 @@ export function SubmitFeedbackForm({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+
+  // Pre-fill email from localStorage if previously saved
+  useEffect(() => {
+    const storedEmail = getVoterEmail()
+    if (storedEmail) {
+      setEmail(storedEmail)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,6 +55,9 @@ export function SubmitFeedbackForm({
       setError("Something went wrong. Please try again.")
       return
     }
+
+    // Save email for future submissions and votes
+    saveVoterEmail(email.trim().toLowerCase())
 
     // Reset form and show success
     setTitle("")

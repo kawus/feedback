@@ -5,11 +5,14 @@ import { useParams } from "next/navigation"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase"
-import { isMyBoard } from "@/lib/board-tokens"
+import { isMyBoard, getBoardToken } from "@/lib/board-tokens"
+import { sendMagicLink } from "@/lib/auth"
 import { useAuth } from "@/components/auth/auth-provider"
 import { Board, Post } from "@/types/database"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { SubmitFeedbackForm } from "@/components/boards/submit-feedback-form"
 import { FeedbackList } from "@/components/boards/feedback-list"
 import { ClaimBanner } from "@/components/boards/claim-banner"
@@ -26,6 +29,12 @@ export default function BoardPage() {
   const [notFoundState, setNotFoundState] = useState(false)
   const [isOwner, setIsOwner] = useState(false)
   const [hasClaimToken, setHasClaimToken] = useState(false)
+
+  // Inline claim form state
+  const [showClaimForm, setShowClaimForm] = useState(false)
+  const [claimEmail, setClaimEmail] = useState("")
+  const [claimLoading, setClaimLoading] = useState(false)
+  const [claimSent, setClaimSent] = useState(false)
 
   // Fetch board and posts
   const fetchData = useCallback(async () => {
@@ -71,6 +80,23 @@ export default function BoardPage() {
   useEffect(() => {
     fetchData()
   }, [fetchData])
+
+  // Handle inline claim submission
+  const handleClaim = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!claimEmail.trim()) return
+
+    setClaimLoading(true)
+    const claimToken = getBoardToken(slug)
+    const redirectUrl = `${window.location.origin}/auth/callback?claim=${slug}&token=${claimToken}`
+
+    const { error } = await sendMagicLink(claimEmail, redirectUrl)
+    setClaimLoading(false)
+
+    if (!error) {
+      setClaimSent(true)
+    }
+  }
 
   // Handle not found
   if (notFoundState) {
@@ -136,6 +162,50 @@ export default function BoardPage() {
               <Badge variant="secondary" className="text-xs">
                 Admin
               </Badge>
+            )}
+            {/* Unclaimed indicator - always visible for unclaimed boards */}
+            {hasClaimToken && !board.user_id && (
+              <div className="flex items-center gap-2">
+                {claimSent ? (
+                  <span className="text-xs text-green-600 dark:text-green-400">
+                    Check your email for the claim link
+                  </span>
+                ) : showClaimForm ? (
+                  <form onSubmit={handleClaim} className="flex items-center gap-2">
+                    <Input
+                      type="email"
+                      placeholder="your@email.com"
+                      value={claimEmail}
+                      onChange={(e) => setClaimEmail(e.target.value)}
+                      className="h-7 text-xs w-40"
+                      required
+                      disabled={claimLoading}
+                    />
+                    <Button
+                      type="submit"
+                      size="sm"
+                      className="h-7 text-xs"
+                      disabled={claimLoading || !claimEmail.trim()}
+                    >
+                      {claimLoading ? "..." : "Send"}
+                    </Button>
+                    <button
+                      type="button"
+                      onClick={() => setShowClaimForm(false)}
+                      className="text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      ✕
+                    </button>
+                  </form>
+                ) : (
+                  <button
+                    onClick={() => setShowClaimForm(true)}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Unclaimed · <span className="underline">Claim to keep</span>
+                  </button>
+                )}
+              </div>
             )}
           </div>
           <div className="flex items-center gap-4">
