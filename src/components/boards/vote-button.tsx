@@ -46,7 +46,7 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
         .select("id")
         .eq("post_id", postId)
         .eq("voter_email", voterEmail)
-        .single()
+        .maybeSingle()
 
       setHasVoted(!!data)
     }
