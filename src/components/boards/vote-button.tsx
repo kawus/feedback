@@ -61,46 +61,46 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
 
     const normalizedEmail = emailToUse.trim().toLowerCase()
 
-    // Atomic approach: Try to insert first, if duplicate key error then delete
-    const { error: insertError } = await supabase
+    // Check if user already voted (explicit check-first approach)
+    const { data: existingVote } = await supabase
       .from("votes")
-      .insert({ post_id: postId, voter_email: normalizedEmail })
+      .select("id")
+      .eq("post_id", postId)
+      .eq("voter_email", normalizedEmail)
+      .maybeSingle()
 
-    if (insertError) {
-      // Check for duplicate key: could be code "23505" OR message contains "duplicate"
-      const isDuplicate = insertError.code === "23505" ||
-                          insertError.message?.toLowerCase().includes("duplicate")
+    if (existingVote) {
+      // User has voted - remove the vote
+      const { error: deleteError } = await supabase
+        .from("votes")
+        .delete()
+        .eq("post_id", postId)
+        .eq("voter_email", normalizedEmail)
 
-      if (isDuplicate) {
-        // Duplicate key means vote exists - remove it
-        const { error: deleteError } = await supabase
-          .from("votes")
-          .delete()
-          .eq("post_id", postId)
-          .eq("voter_email", normalizedEmail)
+      if (deleteError) {
+        setError("Failed to remove vote")
+        setLoading(false)
+        return
+      }
+      setHasVoted(false)
+    } else {
+      // User hasn't voted - add a vote
+      const { error: insertError } = await supabase
+        .from("votes")
+        .insert({ post_id: postId, voter_email: normalizedEmail })
 
-        if (deleteError) {
-          setError("Failed to remove vote")
-          setLoading(false)
-          return
-        }
-        setHasVoted(false)
-        // Realtime DELETE doesn't include post_id, so trigger manual refresh
-        onVoteChange?.()
-      } else {
+      if (insertError) {
         setError("Failed to vote")
         setLoading(false)
         return
       }
-    } else {
-      // Insert succeeded - new vote added
       setHasVoted(true)
       saveVoterEmail(normalizedEmail)
       setVoterEmail(normalizedEmail)
-      // Trigger refresh to update vote count
-      onVoteChange?.()
     }
 
+    // Refresh to get updated count
+    onVoteChange?.()
     setLoading(false)
     setShowEmailInput(false)
   }
