@@ -75,8 +75,8 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
         return
       }
 
-      // Update hasVoted state, but DON'T update count locally
-      // Let parent refetch to get accurate count from database
+      // Immediate feedback + state update
+      setCount((c) => Math.max(0, c - 1))
       setHasVoted(false)
     } else {
       // Add vote
@@ -95,11 +95,11 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
         return
       }
 
-      // Update hasVoted state and save email
+      // Immediate feedback + state update
+      setCount((c) => c + 1)
       setHasVoted(true)
       saveVoterEmail(normalizedEmail)
       setVoterEmail(normalizedEmail)
-      // DON'T update count locally - let parent refetch
     }
 
     setLoading(false)
