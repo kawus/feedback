@@ -60,6 +60,7 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
     setError("")
 
     const normalizedEmail = emailToUse.trim().toLowerCase()
+    console.log("[Vote] Starting vote action for:", normalizedEmail, "postId:", postId)
 
     // Atomic approach: Try to insert first, if duplicate key error then delete
     // This avoids race conditions between checking and acting
@@ -67,14 +68,20 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
       .from("votes")
       .insert({ post_id: postId, voter_email: normalizedEmail })
 
+    console.log("[Vote] Insert result:", insertError ? `Error: ${insertError.code} - ${insertError.message}` : "Success")
+
     if (insertError) {
       if (insertError.code === "23505") {
+        console.log("[Vote] Duplicate detected, attempting delete...")
         // Duplicate key means vote exists - remove it
-        const { error: deleteError } = await supabase
+        const { data: deleteData, error: deleteError } = await supabase
           .from("votes")
           .delete()
           .eq("post_id", postId)
           .eq("voter_email", normalizedEmail)
+          .select()
+
+        console.log("[Vote] Delete result:", deleteError ? `Error: ${deleteError.message}` : "Success", "Deleted rows:", deleteData)
 
         if (deleteError) {
           console.error("Delete vote error:", deleteError)
@@ -83,6 +90,7 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
           return
         }
         setHasVoted(false)
+        console.log("[Vote] Set hasVoted to false")
       } else {
         console.error("Insert vote error:", insertError)
         setError("Failed to vote")
@@ -94,6 +102,7 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
       setHasVoted(true)
       saveVoterEmail(normalizedEmail)
       setVoterEmail(normalizedEmail)
+      console.log("[Vote] Vote added, set hasVoted to true")
     }
 
     setLoading(false)

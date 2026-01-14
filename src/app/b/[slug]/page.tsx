@@ -143,6 +143,7 @@ export default function BoardPage() {
           table: 'votes',
         },
         (payload) => {
+          console.log("[Realtime] Vote INSERT received:", payload)
           const postId = (payload.new as { post_id: string }).post_id
           setPosts((currentPosts) =>
             currentPosts.map((post) =>
@@ -162,7 +163,13 @@ export default function BoardPage() {
           table: 'votes',
         },
         (payload) => {
+          console.log("[Realtime] Vote DELETE received:", payload)
           const postId = (payload.old as { post_id: string }).post_id
+          console.log("[Realtime] Extracted postId:", postId)
+          if (!postId) {
+            console.warn("[Realtime] No postId in DELETE payload - REPLICA IDENTITY FULL may not be set")
+            return
+          }
           setPosts((currentPosts) =>
             currentPosts.map((post) =>
               post.id === postId
