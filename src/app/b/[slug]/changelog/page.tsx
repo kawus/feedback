@@ -128,7 +128,8 @@ export default function ChangelogPage() {
         {isOwner && (
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle className="text-lg">Add Update</CardTitle>
+              <CardTitle className="text-lg">Post an Update</CardTitle>
+              <p className="text-xs text-muted-foreground">Only you can post updates (admin)</p>
             </CardHeader>
             <CardContent>
               <CreateChangelogForm boardId={board.id} onSuccess={fetchData} />

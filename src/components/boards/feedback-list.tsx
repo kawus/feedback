@@ -165,7 +165,7 @@ function StatusBadge({ status }: { status: Post["status"] }) {
 
   return (
     <span
-      className={`text-xs font-medium px-2 py-1 rounded-md self-start ${styles[status]}`}
+      className={`text-xs font-medium px-2 py-1 rounded-md self-start cursor-default select-none ${styles[status]}`}
     >
       {labels[status]}
     </span>

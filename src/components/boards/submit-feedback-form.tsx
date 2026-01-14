@@ -59,6 +59,9 @@ export function SubmitFeedbackForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <p className="text-xs text-muted-foreground">
+        Anyone can submit feedback — no account required.
+      </p>
       <div className="space-y-2">
         <label htmlFor="email" className="text-sm font-medium text-foreground">
           Your email

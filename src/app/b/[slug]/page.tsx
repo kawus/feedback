@@ -9,6 +9,7 @@ import { isMyBoard } from "@/lib/board-tokens"
 import { useAuth } from "@/components/auth/auth-provider"
 import { Board, Post } from "@/types/database"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { SubmitFeedbackForm } from "@/components/boards/submit-feedback-form"
 import { FeedbackList } from "@/components/boards/feedback-list"
 import { ClaimBanner } from "@/components/boards/claim-banner"
@@ -127,9 +128,16 @@ export default function BoardPage() {
 
         {/* Board title + navigation */}
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
-            {board.name}
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
+              {board.name}
+            </h1>
+            {isOwner && (
+              <Badge variant="secondary" className="text-xs">
+                Admin
+              </Badge>
+            )}
+          </div>
           <div className="flex items-center gap-4">
             <Link
               href={`/b/${slug}/roadmap`}
