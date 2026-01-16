@@ -7,6 +7,7 @@ import { PoweredByBadge } from "@/components/boards/powered-by-badge"
 import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { isMyBoard, getBoardToken } from "@/lib/board-tokens"
+import { useAuth } from "@/components/auth/auth-provider"
 import { Board, ChangelogEntry } from "@/types/database"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -17,6 +18,7 @@ import { CreateChangelogForm } from "@/components/boards/create-changelog-form"
 export default function ChangelogPage() {
   const params = useParams()
   const slug = params.slug as string
+  const { user } = useAuth()
 
   const [board, setBoard] = useState<Board | null>(null)
   const [entries, setEntries] = useState<ChangelogEntry[]>([])
@@ -43,7 +45,11 @@ export default function ChangelogPage() {
     }
 
     setBoard(boardData)
-    setIsOwner(isMyBoard(slug))
+
+    // Check ownership: either via claim token (localStorage) or logged-in user
+    const hasToken = isMyBoard(slug)
+    const ownsViaAuth = user && boardData.user_id === user.id
+    setIsOwner(hasToken || !!ownsViaAuth)
 
     // Fetch changelog entries, newest first
     const { data: entriesData } = await supabase
@@ -54,7 +60,7 @@ export default function ChangelogPage() {
 
     setEntries(entriesData || [])
     setLoading(false)
-  }, [slug])
+  }, [slug, user])
 
   useEffect(() => {
     fetchData()
