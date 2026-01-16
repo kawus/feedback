@@ -6,9 +6,12 @@ import Link from "next/link"
 import { PoweredByBadge } from "@/components/boards/powered-by-badge"
 import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase"
-import { isMyBoard } from "@/lib/board-tokens"
+import { isMyBoard, getBoardToken } from "@/lib/board-tokens"
 import { Board, ChangelogEntry } from "@/types/database"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { CreateChangelogForm } from "@/components/boards/create-changelog-form"
 
 export default function ChangelogPage() {
@@ -148,7 +151,13 @@ export default function ChangelogPage() {
         ) : (
           <div className="space-y-8">
             {entries.map((entry) => (
-              <ChangelogCard key={entry.id} entry={entry} />
+              <ChangelogCard
+                key={entry.id}
+                entry={entry}
+                isOwner={isOwner}
+                boardSlug={slug}
+                onUpdate={fetchData}
+              />
             ))}
           </div>
         )}
@@ -159,7 +168,24 @@ export default function ChangelogPage() {
   )
 }
 
-function ChangelogCard({ entry }: { entry: ChangelogEntry }) {
+function ChangelogCard({
+  entry,
+  isOwner,
+  boardSlug,
+  onUpdate,
+}: {
+  entry: ChangelogEntry
+  isOwner: boolean
+  boardSlug: string
+  onUpdate: () => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const [editTitle, setEditTitle] = useState(entry.title)
+  const [editContent, setEditContent] = useState(entry.content || "")
+  const [saving, setSaving] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
   const date = new Date(entry.published_at)
   const formattedDate = date.toLocaleDateString("en-US", {
     year: "numeric",
@@ -167,24 +193,153 @@ function ChangelogCard({ entry }: { entry: ChangelogEntry }) {
     day: "numeric",
   })
 
+  const handleSave = async () => {
+    if (!editTitle.trim()) return
+
+    setSaving(true)
+    const claimToken = getBoardToken(boardSlug)
+
+    const response = await fetch(`/api/changelog/${entry.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: editTitle.trim(),
+        content: editContent.trim() || null,
+        claimToken,
+      }),
+    })
+
+    if (response.ok) {
+      setEditing(false)
+      onUpdate()
+    }
+
+    setSaving(false)
+  }
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    const claimToken = getBoardToken(boardSlug)
+
+    const response = await fetch(`/api/changelog/${entry.id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ claimToken }),
+    })
+
+    if (response.ok) {
+      onUpdate()
+    } else {
+      setDeleting(false)
+      setConfirmDelete(false)
+    }
+  }
+
+  const startEditing = () => {
+    setEditTitle(entry.title)
+    setEditContent(entry.content || "")
+    setEditing(true)
+  }
+
+  if (editing) {
+    return (
+      <article className="relative pl-6 border-l-2 border-border">
+        <div className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-primary" />
+        <time className="text-sm text-muted-foreground">{formattedDate}</time>
+
+        <div className="space-y-3 mt-2">
+          <Input
+            value={editTitle}
+            onChange={(e) => setEditTitle(e.target.value)}
+            placeholder="Title"
+            disabled={saving}
+            autoFocus
+          />
+          <Textarea
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            placeholder="Content (optional)"
+            disabled={saving}
+            rows={3}
+          />
+          <div className="flex gap-2">
+            <Button size="sm" onClick={handleSave} disabled={saving || !editTitle.trim()}>
+              {saving ? "Saving..." : "Save"}
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setEditing(false)} disabled={saving}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </article>
+    )
+  }
+
   return (
-    <article className="relative pl-6 border-l-2 border-border">
+    <article className="relative pl-6 border-l-2 border-border group">
       {/* Timeline dot */}
       <div className="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-primary" />
 
-      {/* Date */}
-      <time className="text-sm text-muted-foreground">{formattedDate}</time>
+      {/* Date + Admin controls */}
+      <div className="flex items-center gap-3">
+        <time className="text-sm text-muted-foreground">{formattedDate}</time>
+        {isOwner && !confirmDelete && (
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+            <button
+              onClick={startEditing}
+              className="text-xs text-primary hover:underline"
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="text-xs text-destructive hover:underline"
+            >
+              Delete
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Delete confirmation */}
+      {confirmDelete && (
+        <div className="mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+          <p className="text-sm text-destructive font-medium">Delete this update?</p>
+          <div className="flex gap-2 mt-2">
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? "Deleting..." : "Yes, delete"}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setConfirmDelete(false)}
+              disabled={deleting}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Title */}
-      <h2 className="text-lg font-semibold text-foreground mt-1 tracking-tight">
-        {entry.title}
-      </h2>
+      {!confirmDelete && (
+        <>
+          <h2 className="text-lg font-semibold text-foreground mt-1 tracking-tight">
+            {entry.title}
+          </h2>
 
-      {/* Content */}
-      {entry.content && (
-        <p className="text-muted-foreground mt-2 leading-relaxed">
-          {entry.content}
-        </p>
+          {/* Content */}
+          {entry.content && (
+            <p className="text-muted-foreground mt-2 leading-relaxed">
+              {entry.content}
+            </p>
+          )}
+        </>
       )}
     </article>
   )

@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase"
 import { isMyBoard, getBoardToken } from "@/lib/board-tokens"
 import { sendMagicLink } from "@/lib/auth"
 import { useAuth } from "@/components/auth/auth-provider"
-import { Board, Post } from "@/types/database"
+import { Board, Post, PostStatus } from "@/types/database"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -35,6 +35,10 @@ export default function BoardPage() {
   const [claimEmail, setClaimEmail] = useState("")
   const [claimLoading, setClaimLoading] = useState(false)
   const [claimSent, setClaimSent] = useState(false)
+
+  // Sort and filter state
+  const [sortBy, setSortBy] = useState<"newest" | "votes">("newest")
+  const [filterStatus, setFilterStatus] = useState<"all" | PostStatus>("all")
 
   // Fetch board and posts
   const fetchData = useCallback(async () => {
@@ -301,8 +305,61 @@ export default function BoardPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Feedback list */}
           <div className="lg:col-span-2 order-2 lg:order-1">
+            {/* Filter and sort controls */}
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              {/* Status filter */}
+              <div className="flex flex-wrap items-center gap-2">
+                {(["all", "open", "planned", "in_progress", "done"] as const).map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setFilterStatus(status)}
+                    className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                      filterStatus === status
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    }`}
+                  >
+                    {status === "all" ? "All" : status === "in_progress" ? "In Progress" : status.charAt(0).toUpperCase() + status.slice(1)}
+                  </button>
+                ))}
+              </div>
+
+              {/* Sort toggle */}
+              <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                <button
+                  onClick={() => setSortBy("newest")}
+                  className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                    sortBy === "newest"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Newest
+                </button>
+                <button
+                  onClick={() => setSortBy("votes")}
+                  className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                    sortBy === "votes"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Most Voted
+                </button>
+              </div>
+            </div>
+
             <FeedbackList
-              posts={posts}
+              posts={
+                [...posts]
+                  .filter(p => filterStatus === "all" || p.status === filterStatus)
+                  .sort((a, b) => {
+                    if (sortBy === "votes") {
+                      return b.vote_count - a.vote_count
+                    }
+                    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                  })
+              }
               boardSlug={slug}
               isOwner={isOwner}
               onVoteChange={fetchData}

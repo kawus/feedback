@@ -30,6 +30,12 @@ export default function SettingsPage() {
   const [claimError, setClaimError] = useState("")
   const [claimSuccess, setClaimSuccess] = useState(false)
 
+  // Edit name state
+  const [editingName, setEditingName] = useState(false)
+  const [newName, setNewName] = useState("")
+  const [savingName, setSavingName] = useState(false)
+  const [nameError, setNameError] = useState("")
+
   const fetchData = useCallback(async () => {
     if (!supabase) {
       setLoading(false)
@@ -101,6 +107,39 @@ export default function SettingsPage() {
     } else {
       setDeleting(false)
       setConfirmDelete(false)
+    }
+  }
+
+  const handleSaveName = async () => {
+    if (!board || !newName.trim()) return
+
+    setSavingName(true)
+    setNameError("")
+
+    const claimToken = getBoardToken(slug)
+
+    const response = await fetch(`/api/boards/${board.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newName.trim(), claimToken }),
+    })
+
+    if (response.ok) {
+      setBoard({ ...board, name: newName.trim() })
+      setEditingName(false)
+    } else {
+      const data = await response.json()
+      setNameError(data.error || "Failed to update name")
+    }
+
+    setSavingName(false)
+  }
+
+  const startEditingName = () => {
+    if (board) {
+      setNewName(board.name)
+      setEditingName(true)
+      setNameError("")
     }
   }
 
@@ -195,7 +234,47 @@ export default function SettingsPage() {
             <CardContent className="space-y-4">
               <div>
                 <p className="text-sm font-medium text-foreground">Name</p>
-                <p className="text-sm text-muted-foreground">{board.name}</p>
+                {editingName ? (
+                  <div className="space-y-2 mt-1">
+                    <Input
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      placeholder="Board name"
+                      disabled={savingName}
+                      autoFocus
+                    />
+                    {nameError && (
+                      <p className="text-destructive text-xs">{nameError}</p>
+                    )}
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={handleSaveName}
+                        disabled={savingName || !newName.trim()}
+                      >
+                        {savingName ? "Saving..." : "Save"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setEditingName(false)}
+                        disabled={savingName}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-muted-foreground">{board.name}</p>
+                    <button
+                      onClick={startEditingName}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                )}
               </div>
               <div>
                 <p className="text-sm font-medium text-foreground">URL</p>

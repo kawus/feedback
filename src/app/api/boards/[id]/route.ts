@@ -23,6 +23,75 @@ function getSupabaseClient(request: NextRequest) {
   })
 }
 
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+    const body = await request.json()
+    const { name, claimToken } = body
+
+    if (!name || typeof name !== "string" || name.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Name is required" },
+        { status: 400 }
+      )
+    }
+
+    const supabaseAdmin = getSupabaseAdmin()
+    const supabaseClient = getSupabaseClient(request)
+
+    // Get current user (may be null for unclaimed boards)
+    const { data: { user } } = await supabaseClient.auth.getUser()
+
+    // Find the board
+    const { data: board, error: boardError } = await supabaseAdmin
+      .from("boards")
+      .select("id, claim_token, user_id")
+      .eq("id", id)
+      .single()
+
+    if (boardError || !board) {
+      return NextResponse.json(
+        { error: "Board not found" },
+        { status: 404 }
+      )
+    }
+
+    // Check authorization: either via claim token or authenticated user
+    const hasValidToken = claimToken && board.claim_token === claimToken
+    const hasValidAuth = user && board.user_id === user.id
+
+    if (!hasValidToken && !hasValidAuth) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 403 }
+      )
+    }
+
+    // Update the board name
+    const { error: updateError } = await supabaseAdmin
+      .from("boards")
+      .update({ name: name.trim() })
+      .eq("id", id)
+
+    if (updateError) {
+      return NextResponse.json(
+        { error: "Failed to update board" },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ success: true, name: name.trim() })
+  } catch {
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
+  }
+}
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
