@@ -49,7 +49,7 @@ export function BoardCreatedModal({ open, boardName, boardSlug }: BoardCreatedMo
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
+      <DialogContent className="sm:max-w-md overflow-hidden" onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <div className="flex justify-center mb-2">
             <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
@@ -122,7 +122,7 @@ export function BoardCreatedModal({ open, boardName, boardSlug }: BoardCreatedMo
         </div>
 
         {/* CTA Button */}
-        <div className="mt-6">
+        <div className="mt-6 pt-2">
           <Button onClick={handleGoToBoard} className="w-full">
             Go to my board
           </Button>
