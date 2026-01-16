@@ -73,6 +73,12 @@ Premium design tokens defined in `globals.css`:
 
 **Colors:** Use semantic tokens (`text-foreground`, `bg-muted`, `border-border`)
 
+**Animations (defined in globals.css):**
+- `animate-shimmer`: Loading state shimmer (Linear/Stripe style)
+- `animate-vote-bump`: Vote button scale animation
+- `animate-vote-count`: Vote count bounce
+- `animate-vote-arrow`: Arrow bounce on vote
+
 ## Current Features
 - **Feedback board** - Submit and vote on feature requests (email-based voting), sort by votes/newest, filter by status
 - **Status management** - Owners can set Open → Planned → In Progress → Done
@@ -80,6 +86,16 @@ Premium design tokens defined in `globals.css`:
 - **Changelog** - Timeline of shipped features and updates (owners can edit/delete entries)
 - **Magic link auth** - Claim boards permanently via email
 - **Board settings** - Edit board name, delete posts and boards
+
+## UX Polish
+- **Board created modal** - Celebration modal with copy-able link and "what's next" guide
+- **Vote animations** - Bounce + scale on vote, first-time voters see thank you toast
+- **Status toasts** - Contextual feedback when owner changes status ("Shipped!" for done)
+- **Claim banner** - Amber warning styling with fear-of-loss messaging
+- **Empty states** - Icons and contextual copy for feedback, roadmap, changelog
+- **Shimmer loading** - Linear/Stripe-style loading animation
+- **Navigation active state** - Current tab highlighted with background pill
+- **Hover polish** - Cards lift on hover, admin actions appear on hover (progressive disclosure)
 
 ## Architecture Notes
 - **Login-last approach** - Users can create boards without auth, claim later
