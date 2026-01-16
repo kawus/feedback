@@ -30,7 +30,10 @@ npm run lint     # Run ESLint
 ### Key Directories
 - `src/app/` - Next.js App Router pages and layouts
 - `src/app/b/[slug]/` - Board pages (feedback, roadmap, changelog, settings)
-- `src/app/api/` - API routes for posts and boards
+- `src/app/api/` - API routes:
+  - `boards/[id]/` - Board PATCH (rename) and DELETE
+  - `changelog/[id]/` - Changelog entry PATCH and DELETE
+  - `posts/[id]/` - Post status PATCH and DELETE
 - `src/components/ui/` - shadcn/ui components (Button, Card, Input, Badge)
 - `src/components/boards/` - Board-specific components (forms, lists, badges)
 - `src/components/auth/` - Authentication provider
@@ -71,12 +74,12 @@ Premium design tokens defined in `globals.css`:
 **Colors:** Use semantic tokens (`text-foreground`, `bg-muted`, `border-border`)
 
 ## Current Features
-- **Feedback board** - Submit and vote on feature requests (email-based voting)
+- **Feedback board** - Submit and vote on feature requests (email-based voting), sort by votes/newest, filter by status
 - **Status management** - Owners can set Open → Planned → In Progress → Done
 - **Public roadmap** - Kanban view of planned/in-progress/done items
-- **Changelog** - Timeline of shipped features and updates
+- **Changelog** - Timeline of shipped features and updates (owners can edit/delete entries)
 - **Magic link auth** - Claim boards permanently via email
-- **Board settings** - Delete posts and boards
+- **Board settings** - Edit board name, delete posts and boards
 
 ## Architecture Notes
 - **Login-last approach** - Users can create boards without auth, claim later
