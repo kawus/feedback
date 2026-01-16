@@ -68,14 +68,14 @@ export default function RoadmapPage() {
       <div className="min-h-screen bg-background">
         <header className="border-b border-border">
           <div className="mx-auto max-w-6xl px-6 py-4">
-            <div className="h-8 w-32 bg-muted rounded animate-pulse" />
+            <div className="h-8 w-32 rounded animate-shimmer" />
           </div>
         </header>
         <main className="mx-auto max-w-6xl px-6 py-8">
-          <div className="h-8 w-48 bg-muted rounded animate-pulse mb-8" />
+          <div className="h-8 w-48 rounded animate-shimmer mb-8" />
           <div className="grid md:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-64 bg-muted rounded-lg animate-pulse" />
+              <div key={i} className="h-64 rounded-lg animate-shimmer" />
             ))}
           </div>
         </main>
@@ -103,16 +103,19 @@ export default function RoadmapPage() {
               FeedbackApp
             </span>
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1">
             <Link
               href={`/b/${slug}`}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 px-3 py-1.5 rounded-md transition-colors"
             >
               Feedback
             </Link>
+            <span className="text-sm font-medium text-foreground px-3 py-1.5 rounded-md bg-muted">
+              Roadmap
+            </span>
             <Link
               href={`/b/${slug}/changelog`}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 px-3 py-1.5 rounded-md transition-colors"
             >
               Changelog
             </Link>
@@ -147,8 +150,13 @@ export default function RoadmapPage() {
               {/* Column cards */}
               <div className="space-y-3 flex-1">
                 {getPostsByStatus(column.status).length === 0 ? (
-                  <div className="text-sm text-muted-foreground py-8 text-center border border-dashed rounded-lg">
-                    No items yet
+                  <div className="flex flex-col items-center justify-center py-12 text-center border border-dashed rounded-lg bg-muted/20">
+                    <div className="flex gap-1 mb-3">
+                      <div className="w-2 h-2 rounded-full bg-muted-foreground/20" />
+                      <div className="w-2 h-2 rounded-full bg-muted-foreground/20" />
+                      <div className="w-2 h-2 rounded-full bg-muted-foreground/20" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">Nothing here yet</p>
                   </div>
                 ) : (
                   getPostsByStatus(column.status).map((post) => (

@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { supabase } from "@/lib/supabase"
 import { getVoterEmail, saveVoterEmail } from "@/lib/voter-email"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { toast } from "@/components/ui/sonner"
 
 interface VoteButtonProps {
   postId: string
@@ -22,10 +23,36 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
   const [email, setEmail] = useState("")
   const [error, setError] = useState("")
 
+  // Animation state
+  const [animating, setAnimating] = useState(false)
+  const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
   // Sync count from props when parent refetches (bounds check: never negative)
   useEffect(() => {
     setCount(Math.max(0, voteCount))
   }, [voteCount])
+
+  // Cleanup animation timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  // Trigger animation (called after successful vote)
+  const triggerAnimation = () => {
+    setAnimating(true)
+    // Clear any existing timeout
+    if (animationTimeoutRef.current) {
+      clearTimeout(animationTimeoutRef.current)
+    }
+    // Remove animation class after animation completes
+    animationTimeoutRef.current = setTimeout(() => {
+      setAnimating(false)
+    }, 300)
+  }
 
   // Load voter email from localStorage on mount
   useEffect(() => {
@@ -53,7 +80,7 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
     checkVote()
   }, [postId, voterEmail])
 
-  const handleVote = async (emailToUse: string) => {
+  const handleVote = async (emailToUse: string, isFirstVote: boolean = false) => {
     if (!supabase) return
 
     setLoading(true)
@@ -83,6 +110,7 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
         return
       }
       setHasVoted(false)
+      triggerAnimation()
     } else {
       // User hasn't voted - add a vote
       const { error: insertError } = await supabase
@@ -97,6 +125,14 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
       setHasVoted(true)
       saveVoterEmail(normalizedEmail)
       setVoterEmail(normalizedEmail)
+      triggerAnimation()
+
+      // Show welcome toast for first-time voters
+      if (isFirstVote) {
+        toast.success("Vote recorded", {
+          description: "We'll update you when this ships.",
+        })
+      }
     }
 
     // Refresh to get updated count
@@ -121,7 +157,8 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (email.trim()) {
-      handleVote(email.trim().toLowerCase())
+      // This is a first-time vote (user just entered their email)
+      handleVote(email.trim().toLowerCase(), true)
     }
   }
 
@@ -168,10 +205,10 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
         hasVoted
           ? "bg-primary/10 border-2 border-primary text-primary"
           : "bg-muted border-2 border-transparent hover:border-primary/30 hover:bg-primary/5"
-      } ${loading ? "opacity-50" : "hover:-translate-y-0.5"}`}
+      } ${loading ? "opacity-50" : "hover:-translate-y-0.5"} ${animating ? "animate-vote-bump" : ""}`}
     >
       <svg
-        className={`w-4 h-4 mb-0.5 transition-transform ${hasVoted ? "text-primary" : "text-muted-foreground"}`}
+        className={`w-4 h-4 mb-0.5 transition-transform ${hasVoted ? "text-primary" : "text-muted-foreground"} ${animating ? "animate-vote-arrow" : ""}`}
         fill={hasVoted ? "currentColor" : "none"}
         stroke="currentColor"
         strokeWidth={2}
@@ -179,7 +216,7 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
       >
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
       </svg>
-      <span className={`text-lg font-semibold ${hasVoted ? "text-primary" : "text-foreground"}`}>
+      <span className={`text-lg font-semibold ${hasVoted ? "text-primary" : "text-foreground"} ${animating ? "animate-vote-count" : ""}`}>
         {count}
       </span>
       <span className="text-xs text-muted-foreground">

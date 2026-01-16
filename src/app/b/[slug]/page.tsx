@@ -178,18 +178,18 @@ export default function BoardPage() {
       <div className="min-h-screen bg-background">
         <header className="border-b border-border">
           <div className="mx-auto max-w-5xl px-6 py-4">
-            <div className="h-8 w-32 bg-muted rounded animate-pulse" />
+            <div className="h-8 w-32 rounded animate-shimmer" />
           </div>
         </header>
         <main className="mx-auto max-w-5xl px-6 py-8">
-          <div className="h-8 w-64 bg-muted rounded animate-pulse mb-8" />
+          <div className="h-8 w-64 rounded animate-shimmer mb-8" />
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-24 bg-muted rounded-lg animate-pulse" />
+                <div key={i} className="h-24 rounded-lg animate-shimmer" />
               ))}
             </div>
-            <div className="h-64 bg-muted rounded-lg animate-pulse" />
+            <div className="h-64 rounded-lg animate-shimmer" />
           </div>
         </main>
       </div>
@@ -277,23 +277,26 @@ export default function BoardPage() {
               </div>
             )}
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1">
+            <span className="text-sm font-medium text-foreground px-3 py-1.5 rounded-md bg-muted">
+              Feedback
+            </span>
             <Link
               href={`/b/${slug}/roadmap`}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 px-3 py-1.5 rounded-md transition-colors"
             >
               Roadmap
             </Link>
             <Link
               href={`/b/${slug}/changelog`}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 px-3 py-1.5 rounded-md transition-colors"
             >
               Changelog
             </Link>
             {isOwner && (
               <Link
                 href={`/b/${slug}/settings`}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 px-3 py-1.5 rounded-md transition-colors"
               >
                 Settings
               </Link>

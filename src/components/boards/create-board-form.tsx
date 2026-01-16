@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { supabase } from "@/lib/supabase"
 import { saveBoardToken } from "@/lib/board-tokens"
+import { BoardCreatedModal } from "./board-created-modal"
 
 // Generate a URL-friendly slug from board name + random suffix
 function generateSlug(name: string): string {
@@ -26,10 +26,13 @@ function generateClaimToken(): string {
 }
 
 export function CreateBoardForm() {
-  const router = useRouter()
   const [name, setName] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+
+  // Modal state for success
+  const [showModal, setShowModal] = useState(false)
+  const [createdSlug, setCreatedSlug] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -67,8 +70,10 @@ export function CreateBoardForm() {
     // Save the claim token to localStorage (proves ownership)
     saveBoardToken(slug, claimToken)
 
-    // Redirect to the new board
-    router.push(`/b/${slug}`)
+    // Show success modal instead of immediate redirect
+    setCreatedSlug(slug)
+    setShowModal(true)
+    setLoading(false)
   }
 
   return (
@@ -101,6 +106,13 @@ export function CreateBoardForm() {
       <Button type="submit" disabled={loading || !name.trim()} className="w-full">
         {loading ? "Creating..." : "Create Board"}
       </Button>
+
+      {/* Success modal */}
+      <BoardCreatedModal
+        open={showModal}
+        boardName={name}
+        boardSlug={createdSlug}
+      />
     </form>
   )
 }

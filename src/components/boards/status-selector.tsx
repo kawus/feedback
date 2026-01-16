@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { PostStatus } from "@/types/database"
 import { getBoardToken } from "@/lib/board-tokens"
+import { toast } from "@/components/ui/sonner"
 
 interface StatusSelectorProps {
   postId: string
@@ -45,6 +46,24 @@ export function StatusSelector({
       if (response.ok) {
         setStatus(newStatus)
         onStatusChange?.()
+
+        // Show contextual toast based on new status
+        const statusLabels: Record<PostStatus, string> = {
+          open: "Open",
+          planned: "Planned",
+          in_progress: "In Progress",
+          done: "Done",
+        }
+
+        if (newStatus === "done") {
+          toast.success("Shipped!", {
+            description: "This is now visible in your Changelog. Consider posting an update.",
+          })
+        } else {
+          toast.success(`Moved to "${statusLabels[newStatus]}"`, {
+            description: "Users who voted will see this on the roadmap.",
+          })
+        }
       }
     } catch {
       // Silently fail - status will remain unchanged

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { sendMagicLink } from "@/lib/auth"
+import { toast } from "@/components/ui/sonner"
 
 export default function SettingsPage() {
   const params = useParams()
@@ -134,6 +135,7 @@ export default function SettingsPage() {
     if (response.ok) {
       setBoard({ ...board, name: newName.trim() })
       setEditingName(false)
+      toast.success("Board name updated")
     } else {
       const data = await response.json()
       setNameError(data.error || "Failed to update name")
@@ -159,11 +161,12 @@ export default function SettingsPage() {
       <div className="min-h-screen bg-background">
         <header className="border-b border-border">
           <div className="mx-auto max-w-3xl px-6 py-4">
-            <div className="h-8 w-32 bg-muted rounded animate-pulse" />
+            <div className="h-8 w-32 rounded animate-shimmer" />
           </div>
         </header>
         <main className="mx-auto max-w-3xl px-6 py-8">
-          <div className="h-8 w-48 bg-muted rounded animate-pulse mb-8" />
+          <div className="h-8 w-48 rounded animate-shimmer mb-8" />
+          <div className="h-64 rounded-lg animate-shimmer" />
         </main>
       </div>
     )

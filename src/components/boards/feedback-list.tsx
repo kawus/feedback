@@ -16,9 +16,31 @@ interface FeedbackListProps {
 export function FeedbackList({ posts, boardSlug, isOwner, onVoteChange }: FeedbackListProps) {
   if (posts.length === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p className="text-lg">No feedback yet</p>
-        <p className="text-sm mt-1">Be the first to submit a feature request!</p>
+      <div className="text-center py-16 text-muted-foreground">
+        {/* Simple inbox icon */}
+        <div className="flex justify-center mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center">
+            <svg
+              className="w-8 h-8 text-muted-foreground/60"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H6.911a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661z"
+              />
+            </svg>
+          </div>
+        </div>
+        <p className="text-lg font-medium text-foreground">No feedback yet</p>
+        <p className="text-sm mt-1 max-w-xs mx-auto">
+          {isOwner
+            ? "Share this board with your users to start collecting ideas."
+            : "Be the first to share an idea!"}
+        </p>
       </div>
     )
   }
@@ -75,7 +97,7 @@ function FeedbackItem({ post, boardSlug, isOwner, onVoteChange }: FeedbackItemPr
   }
 
   return (
-    <div className="bg-card border rounded-lg p-4 shadow-[var(--shadow-sm)]">
+    <div className="group bg-card border rounded-lg p-4 shadow-[var(--shadow-sm)] transition-all duration-200 ease-out hover:shadow-[var(--shadow-md)] hover:border-border/80 hover:-translate-y-0.5">
       <div className="flex gap-4">
         {/* Vote button */}
         <VoteButton
@@ -101,7 +123,7 @@ function FeedbackItem({ post, boardSlug, isOwner, onVoteChange }: FeedbackItemPr
                 {!showConfirm ? (
                   <button
                     onClick={() => setShowConfirm(true)}
-                    className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                    className="text-xs text-muted-foreground hover:text-destructive transition-all opacity-0 group-hover:opacity-100"
                   >
                     Delete
                   </button>

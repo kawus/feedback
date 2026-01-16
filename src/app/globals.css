@@ -141,3 +141,59 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Vote button animations */
+@keyframes vote-bump {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+@keyframes vote-count-pop {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes vote-arrow-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.animate-vote-bump {
+  animation: vote-bump 200ms var(--transition-spring);
+}
+
+.animate-vote-count {
+  animation: vote-count-pop 300ms ease-out;
+}
+
+.animate-vote-arrow {
+  animation: vote-arrow-bounce 300ms ease-out;
+}
+
+/* Shimmer loading animation - Linear/Stripe style */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 25%,
+    oklch(0.9 0 0 / 50%) 50%,
+    var(--muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.dark .animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 25%,
+    oklch(0.4 0 0 / 50%) 50%,
+    var(--muted) 75%
+  );
+  background-size: 200% 100%;
+}
