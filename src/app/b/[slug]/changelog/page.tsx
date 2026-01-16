@@ -194,14 +194,21 @@ function ChangelogCard({
   })
 
   const handleSave = async () => {
-    if (!editTitle.trim()) return
+    if (!editTitle.trim() || !supabase) return
 
     setSaving(true)
     const claimToken = getBoardToken(boardSlug)
 
+    // Get auth token for claimed boards
+    const { data: { session } } = await supabase.auth.getSession()
+    const headers: Record<string, string> = { "Content-Type": "application/json" }
+    if (session?.access_token) {
+      headers["Authorization"] = `Bearer ${session.access_token}`
+    }
+
     const response = await fetch(`/api/changelog/${entry.id}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
         title: editTitle.trim(),
         content: editContent.trim() || null,
@@ -218,12 +225,21 @@ function ChangelogCard({
   }
 
   const handleDelete = async () => {
+    if (!supabase) return
+
     setDeleting(true)
     const claimToken = getBoardToken(boardSlug)
 
+    // Get auth token for claimed boards
+    const { data: { session } } = await supabase.auth.getSession()
+    const headers: Record<string, string> = { "Content-Type": "application/json" }
+    if (session?.access_token) {
+      headers["Authorization"] = `Bearer ${session.access_token}`
+    }
+
     const response = await fetch(`/api/changelog/${entry.id}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ claimToken }),
     })
 
