@@ -5,6 +5,7 @@ import { Post } from "@/types/database"
 import { VoteButton } from "./vote-button"
 import { StatusSelector } from "./status-selector"
 import { getBoardToken } from "@/lib/board-tokens"
+import { supabase } from "@/lib/supabase"
 
 interface FeedbackListProps {
   posts: Post[]
@@ -78,14 +79,23 @@ function FeedbackItem({ post, boardSlug, isOwner, onVoteChange }: FeedbackItemPr
   })
 
   const handleDelete = async () => {
+    // Get claim token (for unclaimed boards) or auth token (for claimed boards)
     const claimToken = getBoardToken(boardSlug)
-    if (!claimToken) return
+    const session = supabase ? (await supabase.auth.getSession()).data.session : null
+
+    // Need either claim token or authenticated session
+    if (!claimToken && !session) return
 
     setDeleting(true)
 
+    const headers: Record<string, string> = { "Content-Type": "application/json" }
+    if (session?.access_token) {
+      headers["Authorization"] = `Bearer ${session.access_token}`
+    }
+
     const response = await fetch(`/api/posts/${post.id}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ claimToken }),
     })
 

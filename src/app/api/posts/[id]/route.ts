@@ -8,6 +8,21 @@ function getSupabaseAdmin() {
   return createClient(supabaseUrl, serviceRoleKey)
 }
 
+// Get current user from request
+function getSupabaseClient(request: NextRequest) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+  const authHeader = request.headers.get("authorization")
+  const accessToken = authHeader?.replace("Bearer ", "")
+
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    global: {
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    },
+  })
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -17,10 +32,10 @@ export async function PATCH(
     const body = await request.json()
     const { status, claimToken } = body
 
-    // Validate input
-    if (!status || !claimToken) {
+    // Validate status
+    if (!status) {
       return NextResponse.json(
-        { error: "Missing status or claimToken" },
+        { error: "Missing status" },
         { status: 400 }
       )
     }
@@ -33,10 +48,14 @@ export async function PATCH(
       )
     }
 
-    const supabase = getSupabaseAdmin()
+    const supabaseAdmin = getSupabaseAdmin()
+    const supabaseClient = getSupabaseClient(request)
+
+    // Get current user (may be null for unclaimed boards)
+    const { data: { user } } = await supabaseClient.auth.getUser()
 
     // Get the post and its board
-    const { data: post, error: postError } = await supabase
+    const { data: post, error: postError } = await supabaseAdmin
       .from("posts")
       .select("id, board_id")
       .eq("id", id)
@@ -49,10 +68,10 @@ export async function PATCH(
       )
     }
 
-    // Verify the claim token matches the board
-    const { data: board, error: boardError } = await supabase
+    // Get the board to verify ownership
+    const { data: board, error: boardError } = await supabaseAdmin
       .from("boards")
-      .select("claim_token")
+      .select("claim_token, user_id")
       .eq("id", post.board_id)
       .single()
 
@@ -63,7 +82,11 @@ export async function PATCH(
       )
     }
 
-    if (board.claim_token !== claimToken) {
+    // Check authorization: either via claim token or authenticated user
+    const hasValidToken = claimToken && board.claim_token === claimToken
+    const hasValidAuth = user && board.user_id === user.id
+
+    if (!hasValidToken && !hasValidAuth) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 403 }
@@ -71,7 +94,7 @@ export async function PATCH(
     }
 
     // Update the post status
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseAdmin
       .from("posts")
       .update({ status })
       .eq("id", id)
@@ -101,17 +124,14 @@ export async function DELETE(
     const body = await request.json()
     const { claimToken } = body
 
-    if (!claimToken) {
-      return NextResponse.json(
-        { error: "Missing claimToken" },
-        { status: 400 }
-      )
-    }
+    const supabaseAdmin = getSupabaseAdmin()
+    const supabaseClient = getSupabaseClient(request)
 
-    const supabase = getSupabaseAdmin()
+    // Get current user (may be null for unclaimed boards)
+    const { data: { user } } = await supabaseClient.auth.getUser()
 
     // Get the post and its board
-    const { data: post, error: postError } = await supabase
+    const { data: post, error: postError } = await supabaseAdmin
       .from("posts")
       .select("id, board_id")
       .eq("id", id)
@@ -124,10 +144,10 @@ export async function DELETE(
       )
     }
 
-    // Verify the claim token matches the board
-    const { data: board, error: boardError } = await supabase
+    // Get the board to verify ownership
+    const { data: board, error: boardError } = await supabaseAdmin
       .from("boards")
-      .select("claim_token")
+      .select("claim_token, user_id")
       .eq("id", post.board_id)
       .single()
 
@@ -138,7 +158,11 @@ export async function DELETE(
       )
     }
 
-    if (board.claim_token !== claimToken) {
+    // Check authorization: either via claim token or authenticated user
+    const hasValidToken = claimToken && board.claim_token === claimToken
+    const hasValidAuth = user && board.user_id === user.id
+
+    if (!hasValidToken && !hasValidAuth) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 403 }
@@ -146,13 +170,13 @@ export async function DELETE(
     }
 
     // Delete votes for this post first
-    await supabase
+    await supabaseAdmin
       .from("votes")
       .delete()
       .eq("post_id", id)
 
     // Delete the post
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await supabaseAdmin
       .from("posts")
       .delete()
       .eq("id", id)

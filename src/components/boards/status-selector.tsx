@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { PostStatus } from "@/types/database"
 import { getBoardToken } from "@/lib/board-tokens"
+import { supabase } from "@/lib/supabase"
 import { toast } from "@/components/ui/sonner"
 
 interface StatusSelectorProps {
@@ -31,15 +32,24 @@ export function StatusSelector({
   const handleChange = async (newStatus: PostStatus) => {
     if (newStatus === status) return
 
+    // Get claim token (for unclaimed boards) or auth token (for claimed boards)
     const claimToken = getBoardToken(boardSlug)
-    if (!claimToken) return
+    const session = supabase ? (await supabase.auth.getSession()).data.session : null
+
+    // Need either claim token or authenticated session
+    if (!claimToken && !session) return
 
     setLoading(true)
 
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" }
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`
+      }
+
       const response = await fetch(`/api/posts/${postId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ status: newStatus, claimToken }),
       })
 
