@@ -30,12 +30,14 @@ npm run lint     # Run ESLint
 ### Key Directories
 - `src/app/` - Next.js App Router pages and layouts
 - `src/app/b/[slug]/` - Board pages (feedback, roadmap, changelog, settings)
+- `src/app/my-boards/` - Dashboard showing all user's boards
 - `src/app/api/` - API routes:
   - `boards/[id]/` - Board PATCH (rename) and DELETE
   - `changelog/[id]/` - Changelog entry PATCH and DELETE
-  - `posts/[id]/` - Post status PATCH and DELETE
+  - `posts/[id]/` - Post status PATCH and DELETE (dual auth: token OR user)
 - `src/components/ui/` - shadcn/ui components (Button, Card, Input, Badge)
 - `src/components/boards/` - Board-specific components (forms, lists, badges)
+- `src/components/layout/` - Shared layout components (SiteHeader)
 - `src/components/auth/` - Authentication provider
 - `src/lib/` - Utility functions (supabase, auth, board-tokens)
 
@@ -85,6 +87,7 @@ Premium design tokens defined in `globals.css`:
 - **Public roadmap** - Kanban view of planned/in-progress/done items
 - **Changelog** - Timeline of shipped features and updates (owners can edit/delete entries)
 - **Magic link auth** - Claim boards permanently via email
+- **My Boards dashboard** - View all boards (unclaimed in localStorage + claimed via account) with inline claiming
 - **Board settings** - Edit board name, delete posts and boards
 
 ## UX Polish
@@ -92,10 +95,11 @@ Premium design tokens defined in `globals.css`:
 - **Vote animations** - Bounce + scale on vote, first-time voters see thank you toast
 - **Status toasts** - Contextual feedback when owner changes status ("Shipped!" for done)
 - **Claim banner** - Amber warning styling with fear-of-loss messaging
-- **Empty states** - Icons and contextual copy for feedback, roadmap, changelog
+- **Empty states** - Icons and contextual copy for feedback, roadmap, changelog, my-boards
 - **Shimmer loading** - Linear/Stripe-style loading animation
 - **Navigation active state** - Current tab highlighted with background pill
 - **Hover polish** - Cards lift on hover, admin actions appear on hover (progressive disclosure)
+- **My Boards header link** - Appears when user has boards (localStorage or logged in)
 
 ## Architecture Notes
 - **Login-last approach** - Users can create boards without auth, claim later
