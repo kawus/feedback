@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { ThemeToggle } from "@/components/theme-toggle"
+import { SiteHeader } from "@/components/layout/site-header"
 import { supabase } from "@/lib/supabase"
 
 export default function Home() {
@@ -60,23 +59,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border">
-        <div className="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground text-sm font-semibold">F</span>
-            </div>
-            <span className="font-semibold text-foreground tracking-tight">FeedbackApp</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">
-              Coming Soon
-            </Badge>
-            <ThemeToggle />
-          </div>
-        </div>
-      </header>
+      <SiteHeader showComingSoon />
 
       {/* Hero */}
       <main className="mx-auto max-w-5xl px-6">

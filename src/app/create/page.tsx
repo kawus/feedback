@@ -1,4 +1,3 @@
-import Link from "next/link"
 import {
   Card,
   CardContent,
@@ -7,25 +6,12 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { CreateBoardForm } from "@/components/boards/create-board-form"
+import { SiteHeader } from "@/components/layout/site-header"
 
 export default function CreateBoardPage() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border">
-        <div className="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground text-sm font-semibold">
-                F
-              </span>
-            </div>
-            <span className="font-semibold text-foreground tracking-tight">
-              FeedbackApp
-            </span>
-          </Link>
-        </div>
-      </header>
+      <SiteHeader />
 
       {/* Main content */}
       <main className="mx-auto max-w-md px-6 py-16">

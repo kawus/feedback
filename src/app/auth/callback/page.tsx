@@ -52,6 +52,7 @@ function AuthCallbackContent() {
       // Check if we need to claim a board
       const claimSlug = searchParams.get("claim")
       const claimToken = searchParams.get("token")
+      const redirectTo = searchParams.get("redirect")
 
       if (claimSlug && claimToken) {
         setMessage("Claiming your board...")
@@ -72,9 +73,9 @@ function AuthCallbackContent() {
           setStatus("success")
           setMessage("Board claimed! Redirecting...")
 
-          // Redirect to the board
+          // Redirect to specified URL or the board
           setTimeout(() => {
-            router.push(`/b/${claimSlug}`)
+            router.push(redirectTo || `/b/${claimSlug}`)
           }, 1500)
           return
         } else {
@@ -85,11 +86,11 @@ function AuthCallbackContent() {
         }
       }
 
-      // No board to claim, just redirect home
+      // No board to claim, just redirect to specified URL or home
       setStatus("success")
       setMessage("Signed in! Redirecting...")
       setTimeout(() => {
-        router.push("/")
+        router.push(redirectTo || "/")
       }, 1500)
     }
 
