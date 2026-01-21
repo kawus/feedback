@@ -7,6 +7,7 @@ import { getVerifiedEmail } from "@/lib/verified-email"
 import { saveVoterEmail } from "@/lib/voter-email"
 import { EmailVerificationForm } from "@/components/auth/email-verification-form"
 import { useAuth } from "@/components/auth/auth-provider"
+import { supabase } from "@/lib/supabase"
 
 interface AddCommentFormProps {
   postId: string
@@ -38,9 +39,18 @@ export function AddCommentForm({ postId, onSuccess }: AddCommentFormProps) {
     setLoading(true)
     setError("")
 
+    // Get auth token if user is signed in
+    const headers: Record<string, string> = { "Content-Type": "application/json" }
+    if (user && supabase) {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`
+      }
+    }
+
     const response = await fetch("/api/comments", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
         postId,
         authorEmail: verifiedEmail,
