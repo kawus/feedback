@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useSyncExternalStore } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import { PoweredByBadge } from "@/components/boards/powered-by-badge"
 import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase"
-import { isMyBoard, getBoardToken } from "@/lib/board-tokens"
+import { isMyBoard, getBoardToken, getBoardTokens } from "@/lib/board-tokens"
 import { useAuth } from "@/components/auth/auth-provider"
 import { Board, ChangelogEntry } from "@/types/database"
 import { Button } from "@/components/ui/button"
@@ -14,10 +14,34 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { CollapsibleChangelogForm } from "@/components/boards/collapsible-changelog-form"
 
+// Subscribe to localStorage changes for board tokens (hydration-safe)
+function subscribeToBoardTokens(callback: () => void) {
+  window.addEventListener("storage", callback)
+  return () => window.removeEventListener("storage", callback)
+}
+
+function getHasBoardTokens() {
+  if (typeof window === "undefined") return false
+  const tokens = getBoardTokens()
+  return Object.keys(tokens).length > 0
+}
+
+function getServerSnapshot() {
+  return false
+}
+
 export default function ChangelogPage() {
   const params = useParams()
   const slug = params.slug as string
   const { user } = useAuth()
+
+  // Check if user has any boards (for "My Boards" navigation link)
+  const hasBoardTokens = useSyncExternalStore(
+    subscribeToBoardTokens,
+    getHasBoardTokens,
+    getServerSnapshot
+  )
+  const hasBoards = hasBoardTokens || user
 
   const [board, setBoard] = useState<Board | null>(null)
   const [entries, setEntries] = useState<ChangelogEntry[]>([])
@@ -96,16 +120,26 @@ export default function ChangelogPage() {
       {/* Header */}
       <header className="border-b border-border">
         <div className="mx-auto max-w-3xl px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground text-sm font-semibold">
-                F
+          <div className="flex items-center gap-6">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground text-sm font-semibold">
+                  F
+                </span>
+              </div>
+              <span className="font-semibold text-foreground tracking-tight">
+                FeedbackApp
               </span>
-            </div>
-            <span className="font-semibold text-foreground tracking-tight">
-              FeedbackApp
-            </span>
-          </Link>
+            </Link>
+            {hasBoards && (
+              <Link
+                href="/my-boards"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                ← My Boards
+              </Link>
+            )}
+          </div>
           <div className="flex items-center gap-1">
             <Link
               href={`/b/${slug}`}

@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useSyncExternalStore } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase"
-import { isMyBoard, getBoardToken } from "@/lib/board-tokens"
+import { isMyBoard, getBoardToken, getBoardTokens } from "@/lib/board-tokens"
 import { sendMagicLink } from "@/lib/auth"
 import { useAuth } from "@/components/auth/auth-provider"
 import { Board, Post, PostStatus } from "@/types/database"
@@ -17,10 +17,34 @@ import { FeedbackList } from "@/components/boards/feedback-list"
 import { ClaimBanner } from "@/components/boards/claim-banner"
 import { PoweredByBadge } from "@/components/boards/powered-by-badge"
 
+// Subscribe to localStorage changes for board tokens (hydration-safe)
+function subscribeToBoardTokens(callback: () => void) {
+  window.addEventListener("storage", callback)
+  return () => window.removeEventListener("storage", callback)
+}
+
+function getHasBoardTokens() {
+  if (typeof window === "undefined") return false
+  const tokens = getBoardTokens()
+  return Object.keys(tokens).length > 0
+}
+
+function getServerSnapshot() {
+  return false
+}
+
 export default function BoardPage() {
   const params = useParams()
   const slug = params.slug as string
   const { user } = useAuth()
+
+  // Check if user has any boards (for "My Boards" navigation link)
+  const hasBoardTokens = useSyncExternalStore(
+    subscribeToBoardTokens,
+    getHasBoardTokens,
+    getServerSnapshot
+  )
+  const hasBoards = hasBoardTokens || user
 
   const [board, setBoard] = useState<Board | null>(null)
   const [posts, setPosts] = useState<Post[]>([])
@@ -254,6 +278,14 @@ export default function BoardPage() {
               FeedbackApp
             </span>
           </Link>
+          {hasBoards && (
+            <Link
+              href="/my-boards"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              ← My Boards
+            </Link>
+          )}
         </div>
       </header>
 

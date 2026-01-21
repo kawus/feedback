@@ -31,6 +31,7 @@ npm run lint     # Run ESLint
 - `src/app/` - Next.js App Router pages and layouts
 - `src/app/b/[slug]/` - Board pages (feedback, roadmap, changelog, settings)
 - `src/app/my-boards/` - Dashboard showing all user's boards
+- `src/app/profile/` - User profile page (account info, sign out, board links)
 - `src/app/signin/` - Sign-in page with magic link auth
 - `src/app/api/` - API routes:
   - `auth/send-otp/` - Send OTP verification code to email
@@ -95,6 +96,8 @@ Premium design tokens defined in `globals.css`:
 - **Magic link auth** - Claim boards permanently via email
 - **My Boards dashboard** - View all boards (unclaimed in localStorage + claimed via account) with inline claiming
 - **Board settings** - Edit board name, delete posts and boards
+- **User profile page** - Account info, sign out, quick links to claimed boards
+- **User avatar dropdown** - When signed in, header shows avatar with dropdown menu (My Boards, Profile, Sign out)
 
 ## UX Polish
 - **Collapsible forms** - Feedback and changelog forms start collapsed, expand on click (progressive disclosure)
@@ -106,7 +109,8 @@ Premium design tokens defined in `globals.css`:
 - **Shimmer loading** - Linear/Stripe-style loading animation
 - **Navigation active state** - Current tab highlighted with background pill
 - **Hover polish** - Cards lift on hover, admin actions appear on hover (progressive disclosure)
-- **Adaptive header link** - Shows "My Boards" if user has boards, "Sign In" otherwise (always visible)
+- **Adaptive header link** - Shows avatar dropdown if signed in, "My Boards" if has boards, "Sign In" otherwise
+- **Back to dashboard** - "← My Boards" link in board page headers for easy navigation back to dashboard
 
 ## Architecture Notes
 - **Login-last approach** - Users can create boards without auth, claim later
