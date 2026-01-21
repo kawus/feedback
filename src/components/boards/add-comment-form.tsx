@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { getVerifiedEmail } from "@/lib/verified-email"
 import { saveVoterEmail } from "@/lib/voter-email"
 import { EmailVerificationForm } from "@/components/auth/email-verification-form"
@@ -12,6 +13,34 @@ import { supabase } from "@/lib/supabase"
 interface AddCommentFormProps {
   postId: string
   onSuccess?: () => void
+}
+
+// Generate consistent color from email (same as comment-item)
+const avatarColors = [
+  "bg-red-500",
+  "bg-orange-500",
+  "bg-amber-500",
+  "bg-green-500",
+  "bg-teal-500",
+  "bg-blue-500",
+  "bg-indigo-500",
+  "bg-purple-500",
+]
+
+function getAvatarColor(email: string): string {
+  let hash = 0
+  for (let i = 0; i < email.length; i++) {
+    hash = email.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return avatarColors[Math.abs(hash) % avatarColors.length]
+}
+
+function getInitial(email: string): string {
+  return email.charAt(0).toUpperCase()
+}
+
+function getEmailPrefix(email: string): string {
+  return email.split("@")[0]
 }
 
 export function AddCommentForm({ postId, onSuccess }: AddCommentFormProps) {
@@ -76,15 +105,15 @@ export function AddCommentForm({ postId, onSuccess }: AddCommentFormProps) {
   // Called when verification completes
   const handleVerified = (email: string) => {
     setVerifiedEmail(email)
-    saveVoterEmail(email) // Save for display purposes
+    saveVoterEmail(email)
   }
 
-  // Collapsed state - just a button
+  // Collapsed state - styled button
   if (!isOpen) {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-md transition-colors"
+        className="w-full text-left px-4 py-3 text-sm text-muted-foreground hover:text-foreground bg-muted/30 hover:bg-muted/50 border border-border rounded-lg transition-colors"
       >
         Add a comment...
       </button>
@@ -94,8 +123,8 @@ export function AddCommentForm({ postId, onSuccess }: AddCommentFormProps) {
   // Expanded state - need to verify email first if not already verified
   if (!verifiedEmail) {
     return (
-      <div className="p-3 bg-muted/30 rounded-lg space-y-2">
-        <p className="text-sm text-muted-foreground">
+      <div className="p-4 bg-muted/30 border border-border rounded-lg space-y-3">
+        <p className="text-sm font-medium text-foreground">
           Verify your email to comment
         </p>
         <EmailVerificationForm
@@ -106,37 +135,47 @@ export function AddCommentForm({ postId, onSuccess }: AddCommentFormProps) {
     )
   }
 
-  // Verified - show comment form
+  const avatarColor = getAvatarColor(verifiedEmail)
+  const initial = getInitial(verifiedEmail)
+  const emailPrefix = getEmailPrefix(verifiedEmail)
+
+  // Verified - show comment form with avatar
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 p-3 bg-muted/30 rounded-lg">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span>Commenting as</span>
-        <span className="font-medium text-foreground">{verifiedEmail}</span>
+    <form onSubmit={handleSubmit} className="p-4 bg-muted/30 border border-border rounded-lg">
+      {/* Header with avatar and email */}
+      <div className="flex items-center gap-3 mb-3">
+        <Avatar size="sm">
+          <AvatarFallback className={`${avatarColor} text-white text-xs font-medium`}>
+            {initial}
+          </AvatarFallback>
+        </Avatar>
+        <span className="text-sm font-medium text-foreground">{emailPrefix}</span>
       </div>
 
-      <div className="space-y-1">
-        <Textarea
-          id={`comment-content-${postId}`}
-          placeholder="Share your thoughts..."
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          required
-          disabled={loading}
-          rows={2}
-          className="text-sm resize-none"
-          autoFocus
-        />
-      </div>
+      {/* Textarea */}
+      <Textarea
+        id={`comment-content-${postId}`}
+        placeholder="Share your thoughts..."
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        required
+        disabled={loading}
+        rows={3}
+        className="text-sm resize-none bg-background"
+        autoFocus
+      />
 
-      {error && <p className="text-destructive text-xs">{error}</p>}
+      {error && <p className="text-destructive text-xs mt-2">{error}</p>}
 
-      <div className="flex gap-2">
+      {/* Actions */}
+      <div className="flex items-center justify-end gap-2 mt-3">
         <Button
           type="button"
           variant="ghost"
           size="sm"
           onClick={() => {
             setIsOpen(false)
+            setContent("")
             setError("")
           }}
           disabled={loading}
@@ -148,7 +187,7 @@ export function AddCommentForm({ postId, onSuccess }: AddCommentFormProps) {
           size="sm"
           disabled={loading || !content.trim()}
         >
-          {loading ? "Posting..." : "Post"}
+          {loading ? "Posting..." : "Comment"}
         </Button>
       </div>
     </form>

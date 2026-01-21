@@ -89,7 +89,7 @@ Premium design tokens defined in `globals.css`:
 ## Current Features
 - **Feedback board** - Submit and vote on feature requests, sort by votes/newest, filter by status
 - **Email verification (OTP)** - Voting and commenting require verified email (6-digit code sent to email, valid for 30 days)
-- **Comments** - Users can comment on feedback posts (verified email required, realtime updates)
+- **Comments** - Users can comment on feedback posts (verified email required, realtime updates, colored avatars)
 - **Status management** - Owners can set Open → Planned → In Progress → Done
 - **Public roadmap** - Kanban view of planned/in-progress/done items
 - **Changelog** - Timeline of shipped features and updates (owners can edit/delete entries)
@@ -111,6 +111,7 @@ Premium design tokens defined in `globals.css`:
 - **Hover polish** - Cards lift on hover, admin actions appear on hover (progressive disclosure)
 - **Adaptive header link** - Shows avatar dropdown if signed in, "My Boards" if has boards, "Sign In" otherwise
 - **Back to dashboard** - "← My Boards" link in board page headers for easy navigation back to dashboard
+- **Comment avatars** - Colored avatars with initials, consistent color per email, dropdown menu for actions
 
 ## Architecture Notes
 - **Login-last approach** - Users can create boards without auth, claim later

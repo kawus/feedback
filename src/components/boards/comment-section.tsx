@@ -111,11 +111,11 @@ export function CommentSection({
 
   // Expanded state - full comment section
   return (
-    <div className="mt-3 pt-3 border-t border-border">
+    <div className="mt-4 pt-4 border-t border-border">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-medium text-muted-foreground">
-          Comments ({commentCount})
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-sm font-medium text-foreground">
+          Comments {commentCount > 0 && `(${commentCount})`}
         </span>
         <button
           onClick={() => setIsOpen(false)}
@@ -125,33 +125,36 @@ export function CommentSection({
         </button>
       </div>
 
+      {/* Add comment form - at the TOP */}
+      <div className="mb-4">
+        <AddCommentForm postId={postId} onSuccess={fetchComments} />
+      </div>
+
       {/* Comments list */}
       {loading ? (
-        <div className="py-4 text-center">
+        <div className="py-6 text-center">
           <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
         </div>
       ) : comments.length === 0 ? (
-        <p className="text-xs text-muted-foreground py-2">
-          No comments yet. Be the first to share your thoughts!
-        </p>
+        <div className="py-6 text-center">
+          <p className="text-sm text-muted-foreground">
+            No comments yet. Be the first to share your thoughts!
+          </p>
+        </div>
       ) : (
-        <div className="space-y-1 divide-y divide-border/50">
+        <div className="divide-y divide-border">
           {comments.map((comment) => (
-            <CommentItem
-              key={comment.id}
-              comment={comment}
-              boardSlug={boardSlug}
-              isOwner={isOwner}
-              onDelete={fetchComments}
-            />
+            <div key={comment.id} className="group">
+              <CommentItem
+                comment={comment}
+                boardSlug={boardSlug}
+                isOwner={isOwner}
+                onDelete={fetchComments}
+              />
+            </div>
           ))}
         </div>
       )}
-
-      {/* Add comment form */}
-      <div className="mt-3">
-        <AddCommentForm postId={postId} onSuccess={fetchComments} />
-      </div>
     </div>
   )
 }
