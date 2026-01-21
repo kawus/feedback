@@ -93,13 +93,11 @@ export async function POST(request: NextRequest) {
 
     if (upsertError) {
       console.error("Failed to record verification:", upsertError)
-      // Still return success since OTP was valid - just couldn't record it
-      // User can try again if needed
+      return NextResponse.json(
+        { error: "Verification succeeded but failed to save. Please try again." },
+        { status: 500 }
+      )
     }
-
-    // Sign out the session we just created (we don't want full auth, just verification)
-    // This keeps the app "login-last" - users aren't fully logged in just for voting
-    await supabaseAdmin.auth.signOut()
 
     return NextResponse.json({
       verified: true,
