@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Post } from "@/types/database"
 import { VoteButton } from "./vote-button"
 import { StatusSelector } from "./status-selector"
+import { CommentSection } from "./comment-section"
 import { getBoardToken } from "@/lib/board-tokens"
 import { supabase } from "@/lib/supabase"
 
@@ -128,6 +129,13 @@ function FeedbackItem({ post, boardSlug, isOwner, onVoteChange }: FeedbackItemPr
           )}
           <div className="flex items-center gap-3 mt-2">
             <p className="text-xs text-muted-foreground">{formattedDate}</p>
+            <span className="text-muted-foreground/50">·</span>
+            <CommentSection
+              postId={post.id}
+              boardSlug={boardSlug}
+              isOwner={isOwner}
+              initialCommentCount={0}
+            />
             {isOwner && (
               <>
                 {!showConfirm ? (

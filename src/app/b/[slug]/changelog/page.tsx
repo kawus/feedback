@@ -9,11 +9,10 @@ import { supabase } from "@/lib/supabase"
 import { isMyBoard, getBoardToken } from "@/lib/board-tokens"
 import { useAuth } from "@/components/auth/auth-provider"
 import { Board, ChangelogEntry } from "@/types/database"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { CreateChangelogForm } from "@/components/boards/create-changelog-form"
+import { CollapsibleChangelogForm } from "@/components/boards/collapsible-changelog-form"
 
 export default function ChangelogPage() {
   const params = useParams()
@@ -138,15 +137,9 @@ export default function ChangelogPage() {
 
         {/* Admin form to add changelog entry */}
         {isOwner && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="text-lg">Post an Update</CardTitle>
-              <p className="text-xs text-muted-foreground">Only you can post updates (admin)</p>
-            </CardHeader>
-            <CardContent>
-              <CreateChangelogForm boardId={board.id} onSuccess={fetchData} />
-            </CardContent>
-          </Card>
+          <div className="mb-8">
+            <CollapsibleChangelogForm boardId={board.id} onSuccess={fetchData} />
+          </div>
         )}
 
         {/* Changelog entries */}

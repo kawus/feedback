@@ -36,6 +36,7 @@ npm run lint     # Run ESLint
   - `boards/[id]/` - Board PATCH (rename) and DELETE
   - `changelog/[id]/` - Changelog entry PATCH and DELETE
   - `posts/[id]/` - Post status PATCH and DELETE (dual auth: token OR user)
+  - `comments/` - Comment POST (create) and DELETE (owner or author)
 - `src/components/ui/` - shadcn/ui components (Button, Card, Input, Badge)
 - `src/components/boards/` - Board-specific components (forms, lists, badges)
 - `src/components/layout/` - Shared layout components (SiteHeader)
@@ -84,6 +85,7 @@ Premium design tokens defined in `globals.css`:
 
 ## Current Features
 - **Feedback board** - Submit and vote on feature requests (email-based voting), sort by votes/newest, filter by status
+- **Comments** - Users can comment on feedback posts (email-based identity, realtime updates)
 - **Status management** - Owners can set Open → Planned → In Progress → Done
 - **Public roadmap** - Kanban view of planned/in-progress/done items
 - **Changelog** - Timeline of shipped features and updates (owners can edit/delete entries)
@@ -92,6 +94,7 @@ Premium design tokens defined in `globals.css`:
 - **Board settings** - Edit board name, delete posts and boards
 
 ## UX Polish
+- **Collapsible forms** - Feedback and changelog forms start collapsed, expand on click (progressive disclosure)
 - **Board created modal** - Celebration modal with copy-able link and "what's next" guide
 - **Vote animations** - Bounce + scale on vote, first-time voters see thank you toast
 - **Status toasts** - Contextual feedback when owner changes status ("Shipped!" for done)
@@ -134,4 +137,27 @@ AFTER INSERT ON votes FOR EACH ROW EXECUTE FUNCTION increment_vote_count();
 
 CREATE TRIGGER vote_decrement_trigger
 AFTER DELETE ON votes FOR EACH ROW EXECUTE FUNCTION decrement_vote_count();
+```
+
+## Comments Table (Required for Comments Feature)
+```sql
+CREATE TABLE comments (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  author_email TEXT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_comments_post_id ON comments(post_id);
+
+-- RLS: Anyone can read, anyone with email can insert
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Comments are publicly readable"
+  ON comments FOR SELECT USING (true);
+
+CREATE POLICY "Anyone can create comments"
+  ON comments FOR INSERT
+  WITH CHECK (author_email IS NOT NULL AND author_email != '');
 ```
