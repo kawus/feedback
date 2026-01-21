@@ -31,6 +31,7 @@ npm run lint     # Run ESLint
 - `src/app/` - Next.js App Router pages and layouts
 - `src/app/b/[slug]/` - Board pages (feedback, roadmap, changelog, settings)
 - `src/app/my-boards/` - Dashboard showing all user's boards
+- `src/app/signin/` - Sign-in page with magic link auth
 - `src/app/api/` - API routes:
   - `boards/[id]/` - Board PATCH (rename) and DELETE
   - `changelog/[id]/` - Changelog entry PATCH and DELETE
@@ -99,7 +100,7 @@ Premium design tokens defined in `globals.css`:
 - **Shimmer loading** - Linear/Stripe-style loading animation
 - **Navigation active state** - Current tab highlighted with background pill
 - **Hover polish** - Cards lift on hover, admin actions appear on hover (progressive disclosure)
-- **My Boards header link** - Appears when user has boards (localStorage or logged in)
+- **Adaptive header link** - Shows "My Boards" if user has boards, "Sign In" otherwise (always visible)
 
 ## Architecture Notes
 - **Login-last approach** - Users can create boards without auth, claim later

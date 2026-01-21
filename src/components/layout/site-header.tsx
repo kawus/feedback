@@ -39,10 +39,11 @@ export function SiteHeader({ showComingSoon = false }: SiteHeaderProps) {
     getServerSnapshot
   )
 
-  // Show "My Boards" if:
-  // 1. User has localStorage tokens (unclaimed boards), OR
-  // 2. User is logged in (might have claimed boards)
-  const showMyBoards = !loading && (hasBoardTokens || user)
+  // Determine which link to show:
+  // - "My Boards" if user has localStorage tokens OR is logged in
+  // - "Sign In" otherwise (gives entry point from any browser)
+  const hasBoards = hasBoardTokens || user
+  const showAuthLink = !loading
 
   return (
     <header className="border-b border-border">
@@ -59,12 +60,12 @@ export function SiteHeader({ showComingSoon = false }: SiteHeaderProps) {
 
         {/* Right side */}
         <div className="flex items-center gap-3">
-          {showMyBoards && (
+          {showAuthLink && (
             <Link
-              href="/my-boards"
+              href={hasBoards ? "/my-boards" : "/signin"}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              My Boards
+              {hasBoards ? "My Boards" : "Sign In"}
             </Link>
           )}
           {showComingSoon && (

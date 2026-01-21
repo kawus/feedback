@@ -165,7 +165,9 @@ export default function MyBoardsPage() {
               No boards yet
             </h2>
             <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-              Create your first feedback board in seconds. No account required.
+              {user
+                ? "Your claimed boards will appear here. Create a new board or visit an existing board URL to claim it."
+                : "Create your first feedback board in seconds. No account required."}
             </p>
             <Button asChild>
               <Link href="/create">Create a board</Link>
