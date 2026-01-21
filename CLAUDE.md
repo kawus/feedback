@@ -192,8 +192,7 @@ ALTER TABLE verified_emails ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can check verification status"
   ON verified_emails FOR SELECT USING (true);
 
-CREATE POLICY "Service role can manage verifications"
-  ON verified_emails FOR ALL
-  USING (auth.role() = 'service_role')
-  WITH CHECK (auth.role() = 'service_role');
+CREATE POLICY "Allow insert for verified emails"
+  ON verified_emails FOR INSERT
+  WITH CHECK (true);
 ```

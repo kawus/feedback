@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
     if (upsertError) {
       console.error("Failed to record verification:", upsertError)
       return NextResponse.json(
-        { error: `Failed to save verification: ${upsertError.message}` },
+        { error: "Failed to save verification. Please try again." },
         { status: 500 }
       )
     }
