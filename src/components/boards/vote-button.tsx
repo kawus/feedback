@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase"
 import { getVerifiedEmail } from "@/lib/verified-email"
 import { saveVoterEmail } from "@/lib/voter-email"
 import { EmailVerificationForm } from "@/components/auth/email-verification-form"
+import { useAuth } from "@/components/auth/auth-provider"
 import { toast } from "@/components/ui/sonner"
 
 interface VoteButtonProps {
@@ -14,6 +15,7 @@ interface VoteButtonProps {
 }
 
 export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps) {
+  const { user } = useAuth()
   // Track verified email in state so we can react to changes
   const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null)
   const [count, setCount] = useState(Math.max(0, voteCount))
@@ -53,11 +55,15 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
     }, 300)
   }
 
-  // Load verified email from localStorage on mount
+  // Use authenticated user's email, or check for OTP-verified email
   useEffect(() => {
-    const email = getVerifiedEmail()
-    setVerifiedEmail(email)
-  }, [])
+    if (user?.email) {
+      setVerifiedEmail(user.email)
+    } else {
+      const email = getVerifiedEmail()
+      setVerifiedEmail(email)
+    }
+  }, [user])
 
   // Check if user has already voted - re-run when postId or verifiedEmail changes
   useEffect(() => {
@@ -145,7 +151,13 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
     // Prevent double-clicks while loading
     if (loading) return
 
-    // Read fresh from localStorage (more reliable than state)
+    // Authenticated users can vote directly
+    if (user?.email) {
+      handleVote(user.email)
+      return
+    }
+
+    // Check for OTP-verified email
     const storedEmail = getVerifiedEmail()
     if (storedEmail) {
       handleVote(storedEmail)

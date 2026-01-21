@@ -8,6 +8,21 @@ function getSupabaseAdmin() {
   return createClient(supabaseUrl, serviceRoleKey)
 }
 
+// Client to get current user from request
+function getSupabaseClient(request: NextRequest) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+  const authHeader = request.headers.get("authorization")
+  const accessToken = authHeader?.replace("Bearer ", "")
+
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    global: {
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    },
+  })
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -46,28 +61,35 @@ export async function POST(request: NextRequest) {
     }
 
     const supabaseAdmin = getSupabaseAdmin()
+    const supabaseClient = getSupabaseClient(request)
     const normalizedEmail = authorEmail.trim().toLowerCase()
 
-    // Verify the email is verified and not expired
-    const { data: verification, error: verifyError } = await supabaseAdmin
-      .from("verified_emails")
-      .select("expires_at")
-      .eq("email", normalizedEmail)
-      .single()
+    // Check if user is authenticated (signed in via magic link)
+    const { data: { user } } = await supabaseClient.auth.getUser()
+    const isAuthenticatedUser = user?.email?.toLowerCase() === normalizedEmail
 
-    if (verifyError || !verification) {
-      return NextResponse.json(
-        { error: "Please verify your email before commenting" },
-        { status: 403 }
-      )
-    }
+    // If not authenticated with this email, check OTP verification
+    if (!isAuthenticatedUser) {
+      const { data: verification, error: verifyError } = await supabaseAdmin
+        .from("verified_emails")
+        .select("expires_at")
+        .eq("email", normalizedEmail)
+        .single()
 
-    // Check if verification has expired
-    if (new Date(verification.expires_at) < new Date()) {
-      return NextResponse.json(
-        { error: "Email verification has expired. Please verify again." },
-        { status: 403 }
-      )
+      if (verifyError || !verification) {
+        return NextResponse.json(
+          { error: "Please verify your email before commenting" },
+          { status: 403 }
+        )
+      }
+
+      // Check if verification has expired
+      if (new Date(verification.expires_at) < new Date()) {
+        return NextResponse.json(
+          { error: "Email verification has expired. Please verify again." },
+          { status: 403 }
+        )
+      }
     }
 
     // Verify the post exists

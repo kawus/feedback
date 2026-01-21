@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { getVerifiedEmail } from "@/lib/verified-email"
 import { saveVoterEmail } from "@/lib/voter-email"
 import { EmailVerificationForm } from "@/components/auth/email-verification-form"
+import { useAuth } from "@/components/auth/auth-provider"
 
 interface AddCommentFormProps {
   postId: string
@@ -13,17 +14,22 @@ interface AddCommentFormProps {
 }
 
 export function AddCommentForm({ postId, onSuccess }: AddCommentFormProps) {
+  const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null)
   const [content, setContent] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  // Check for verified email from localStorage
+  // Use authenticated user's email, or check for OTP-verified email
   useEffect(() => {
-    const email = getVerifiedEmail()
-    setVerifiedEmail(email)
-  }, [])
+    if (user?.email) {
+      setVerifiedEmail(user.email)
+    } else {
+      const email = getVerifiedEmail()
+      setVerifiedEmail(email)
+    }
+  }, [user])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
