@@ -29,11 +29,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Token should be 6 digits
+    // Token should be 6-8 digits (Supabase uses 8 for email OTP)
     const tokenClean = token.toString().trim()
-    if (!/^\d{6}$/.test(tokenClean)) {
+    if (!/^\d{6,8}$/.test(tokenClean)) {
       return NextResponse.json(
-        { error: "Invalid code format. Please enter the 6-digit code." },
+        { error: "Invalid code format. Please enter the code from your email." },
         { status: 400 }
       )
     }

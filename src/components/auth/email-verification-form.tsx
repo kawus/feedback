@@ -197,8 +197,8 @@ export function EmailVerificationForm({
           type="text"
           inputMode="numeric"
           pattern="[0-9]*"
-          maxLength={6}
-          placeholder="000000"
+          maxLength={8}
+          placeholder="00000000"
           value={otp}
           onChange={(e) => {
             // Only allow digits
@@ -206,7 +206,7 @@ export function EmailVerificationForm({
             setOtp(value)
           }}
           required
-          className={compact ? "text-xs h-8 w-32 tracking-widest text-center font-mono" : "tracking-widest text-center font-mono text-lg"}
+          className={compact ? "text-xs h-8 w-36 tracking-widest text-center font-mono" : "tracking-widest text-center font-mono text-lg"}
           disabled={loading}
         />
         <div className="flex gap-2">
@@ -214,7 +214,7 @@ export function EmailVerificationForm({
             type="submit"
             size={compact ? "sm" : "default"}
             className={compact ? "text-xs h-7 flex-1" : "flex-1"}
-            disabled={loading || otp.length !== 6}
+            disabled={loading || otp.length < 6}
           >
             {loading ? "Verifying..." : "Verify"}
           </Button>
