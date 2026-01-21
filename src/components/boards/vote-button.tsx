@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef } from "react"
 import { supabase } from "@/lib/supabase"
-import { getVoterEmail, saveVoterEmail } from "@/lib/voter-email"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { getVerifiedEmail } from "@/lib/verified-email"
+import { saveVoterEmail } from "@/lib/voter-email"
+import { EmailVerificationForm } from "@/components/auth/email-verification-form"
 import { toast } from "@/components/ui/sonner"
 
 interface VoteButtonProps {
@@ -14,13 +14,12 @@ interface VoteButtonProps {
 }
 
 export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps) {
-  // Track voter email in state so we can react to changes
-  const [voterEmail, setVoterEmail] = useState<string | null>(null)
+  // Track verified email in state so we can react to changes
+  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null)
   const [count, setCount] = useState(Math.max(0, voteCount))
   const [hasVoted, setHasVoted] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [showEmailInput, setShowEmailInput] = useState(false)
-  const [email, setEmail] = useState("")
+  const [showVerification, setShowVerification] = useState(false)
   const [error, setError] = useState("")
 
   // Animation state
@@ -54,16 +53,16 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
     }, 300)
   }
 
-  // Load voter email from localStorage on mount
+  // Load verified email from localStorage on mount
   useEffect(() => {
-    const email = getVoterEmail()
-    setVoterEmail(email)
+    const email = getVerifiedEmail()
+    setVerifiedEmail(email)
   }, [])
 
-  // Check if user has already voted - re-run when postId or voterEmail changes
+  // Check if user has already voted - re-run when postId or verifiedEmail changes
   useEffect(() => {
     async function checkVote() {
-      if (!voterEmail || !supabase) {
+      if (!verifiedEmail || !supabase) {
         setHasVoted(false)
         return
       }
@@ -72,13 +71,13 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
         .from("votes")
         .select("id")
         .eq("post_id", postId)
-        .eq("voter_email", voterEmail)
+        .eq("voter_email", verifiedEmail)
         .maybeSingle()
 
       setHasVoted(!!data)
     }
     checkVote()
-  }, [postId, voterEmail])
+  }, [postId, verifiedEmail])
 
   const handleVote = async (emailToUse: string, isFirstVote: boolean = false) => {
     if (!supabase) return
@@ -123,8 +122,9 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
         return
       }
       setHasVoted(true)
+      // Also save as voter email for comment form pre-fill
       saveVoterEmail(normalizedEmail)
-      setVoterEmail(normalizedEmail)
+      setVerifiedEmail(normalizedEmail)
       triggerAnimation()
 
       // Show welcome toast for first-time voters
@@ -138,7 +138,7 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
     // Refresh to get updated count
     onVoteChange?.()
     setLoading(false)
-    setShowEmailInput(false)
+    setShowVerification(false)
   }
 
   const handleClick = () => {
@@ -146,51 +146,30 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
     if (loading) return
 
     // Read fresh from localStorage (more reliable than state)
-    const storedEmail = getVoterEmail()
+    const storedEmail = getVerifiedEmail()
     if (storedEmail) {
       handleVote(storedEmail)
     } else {
-      setShowEmailInput(true)
+      // No verified email - show verification form
+      setShowVerification(true)
     }
   }
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (email.trim()) {
-      // This is a first-time vote (user just entered their email)
-      handleVote(email.trim().toLowerCase(), true)
-    }
+  // Called when email verification completes
+  const handleVerified = (email: string) => {
+    // Verification complete - now submit the vote
+    handleVote(email, true)
   }
 
-  // Email input mode
-  if (showEmailInput) {
+  // Email verification mode
+  if (showVerification) {
     return (
-      <div className="flex flex-col items-center gap-2 min-w-[80px]">
-        <form onSubmit={handleEmailSubmit} className="space-y-2">
-          <Input
-            type="email"
-            placeholder="your@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoFocus
-            className="text-xs h-8 w-32"
-          />
-          <div className="flex gap-1">
-            <Button type="submit" size="sm" className="text-xs h-7 flex-1" disabled={loading}>
-              Vote
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="text-xs h-7"
-              onClick={() => setShowEmailInput(false)}
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
+      <div className="flex flex-col items-center gap-2 min-w-[140px]">
+        <EmailVerificationForm
+          onVerified={handleVerified}
+          onCancel={() => setShowVerification(false)}
+          compact
+        />
         {error && <p className="text-destructive text-xs">{error}</p>}
       </div>
     )

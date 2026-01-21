@@ -53,3 +53,11 @@ export interface Comment {
   content: string;
   created_at: string;
 }
+
+export interface VerifiedEmail {
+  id: string;
+  email: string;
+  verified_at: string;
+  expires_at: string;
+  created_at: string;
+}

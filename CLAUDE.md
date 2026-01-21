@@ -33,15 +33,17 @@ npm run lint     # Run ESLint
 - `src/app/my-boards/` - Dashboard showing all user's boards
 - `src/app/signin/` - Sign-in page with magic link auth
 - `src/app/api/` - API routes:
+  - `auth/send-otp/` - Send OTP verification code to email
+  - `auth/verify-otp/` - Verify OTP code and record verification
   - `boards/[id]/` - Board PATCH (rename) and DELETE
   - `changelog/[id]/` - Changelog entry PATCH and DELETE
   - `posts/[id]/` - Post status PATCH and DELETE (dual auth: token OR user)
-  - `comments/` - Comment POST (create) and DELETE (owner or author)
+  - `comments/` - Comment POST (requires verified email) and DELETE (owner or author)
 - `src/components/ui/` - shadcn/ui components (Button, Card, Input, Badge)
 - `src/components/boards/` - Board-specific components (forms, lists, badges)
 - `src/components/layout/` - Shared layout components (SiteHeader)
-- `src/components/auth/` - Authentication provider
-- `src/lib/` - Utility functions (supabase, auth, board-tokens)
+- `src/components/auth/` - Authentication provider + email verification form
+- `src/lib/` - Utility functions (supabase, auth, board-tokens, verified-email)
 
 ### Environment Variables
 Copy `.env.local.example` to `.env.local` and add Supabase credentials:
@@ -84,8 +86,9 @@ Premium design tokens defined in `globals.css`:
 - `animate-vote-arrow`: Arrow bounce on vote
 
 ## Current Features
-- **Feedback board** - Submit and vote on feature requests (email-based voting), sort by votes/newest, filter by status
-- **Comments** - Users can comment on feedback posts (email-based identity, realtime updates)
+- **Feedback board** - Submit and vote on feature requests, sort by votes/newest, filter by status
+- **Email verification (OTP)** - Voting and commenting require verified email (6-digit code sent to email, valid for 30 days)
+- **Comments** - Users can comment on feedback posts (verified email required, realtime updates)
 - **Status management** - Owners can set Open → Planned → In Progress → Done
 - **Public roadmap** - Kanban view of planned/in-progress/done items
 - **Changelog** - Timeline of shipped features and updates (owners can edit/delete entries)
@@ -107,9 +110,19 @@ Premium design tokens defined in `globals.css`:
 
 ## Architecture Notes
 - **Login-last approach** - Users can create boards without auth, claim later
-- **Claim token system** - localStorage stores ownership until claimed
+- **Email verification for interactions** - Voting and commenting require OTP-verified email (prevents impersonation)
+- **Claim token system** - localStorage stores board ownership until claimed
 - **Dual ownership check** - Validates via claim token OR authenticated user
 - See PLAN.md for full architecture details and database schema
+
+## Auth Model Summary
+| Action | Auth Required |
+|--------|--------------|
+| Create board | None (localStorage token) |
+| Vote | Email verification (OTP) |
+| Comment | Email verification (OTP) |
+| Claim board | Magic link sign-in |
+| Manage board settings | Claim token OR signed in |
 
 ## Database Triggers (Required for Voting)
 The voting system requires these PostgreSQL triggers to keep `posts.vote_count` in sync:
@@ -160,4 +173,27 @@ CREATE POLICY "Comments are publicly readable"
 CREATE POLICY "Anyone can create comments"
   ON comments FOR INSERT
   WITH CHECK (author_email IS NOT NULL AND author_email != '');
+```
+
+## Verified Emails Table (Required for Email Verification)
+```sql
+CREATE TABLE verified_emails (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  verified_at TIMESTAMPTZ DEFAULT NOW(),
+  expires_at TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '30 days'),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_verified_emails_email ON verified_emails(email);
+
+ALTER TABLE verified_emails ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can check verification status"
+  ON verified_emails FOR SELECT USING (true);
+
+CREATE POLICY "Service role can manage verifications"
+  ON verified_emails FOR ALL
+  USING (auth.role() = 'service_role')
+  WITH CHECK (auth.role() = 'service_role');
 ```

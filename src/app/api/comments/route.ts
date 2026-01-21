@@ -46,6 +46,29 @@ export async function POST(request: NextRequest) {
     }
 
     const supabaseAdmin = getSupabaseAdmin()
+    const normalizedEmail = authorEmail.trim().toLowerCase()
+
+    // Verify the email is verified and not expired
+    const { data: verification, error: verifyError } = await supabaseAdmin
+      .from("verified_emails")
+      .select("expires_at")
+      .eq("email", normalizedEmail)
+      .single()
+
+    if (verifyError || !verification) {
+      return NextResponse.json(
+        { error: "Please verify your email before commenting" },
+        { status: 403 }
+      )
+    }
+
+    // Check if verification has expired
+    if (new Date(verification.expires_at) < new Date()) {
+      return NextResponse.json(
+        { error: "Email verification has expired. Please verify again." },
+        { status: 403 }
+      )
+    }
 
     // Verify the post exists
     const { data: post, error: postError } = await supabaseAdmin
@@ -66,7 +89,7 @@ export async function POST(request: NextRequest) {
       .from("comments")
       .insert({
         post_id: postId,
-        author_email: authorEmail.trim().toLowerCase(),
+        author_email: normalizedEmail,
         content: content.trim(),
       })
       .select()

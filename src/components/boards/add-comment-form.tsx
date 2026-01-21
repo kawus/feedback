@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { getVoterEmail, saveVoterEmail } from "@/lib/voter-email"
+import { getVerifiedEmail } from "@/lib/verified-email"
+import { saveVoterEmail } from "@/lib/voter-email"
+import { EmailVerificationForm } from "@/components/auth/email-verification-form"
 
 interface AddCommentFormProps {
   postId: string
@@ -13,21 +14,21 @@ interface AddCommentFormProps {
 
 export function AddCommentForm({ postId, onSuccess }: AddCommentFormProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [email, setEmail] = useState("")
+  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null)
   const [content, setContent] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  // Pre-fill email from localStorage
+  // Check for verified email from localStorage
   useEffect(() => {
-    const storedEmail = getVoterEmail()
-    if (storedEmail) {
-      setEmail(storedEmail)
-    }
+    const email = getVerifiedEmail()
+    setVerifiedEmail(email)
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!verifiedEmail) return
+
     setLoading(true)
     setError("")
 
@@ -36,7 +37,7 @@ export function AddCommentForm({ postId, onSuccess }: AddCommentFormProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         postId,
-        authorEmail: email.trim().toLowerCase(),
+        authorEmail: verifiedEmail,
         content: content.trim(),
       }),
     })
@@ -49,14 +50,17 @@ export function AddCommentForm({ postId, onSuccess }: AddCommentFormProps) {
       return
     }
 
-    // Save email for future use
-    saveVoterEmail(email.trim().toLowerCase())
-
     // Reset and close
     setContent("")
     setIsOpen(false)
 
     onSuccess?.()
+  }
+
+  // Called when verification completes
+  const handleVerified = (email: string) => {
+    setVerifiedEmail(email)
+    saveVoterEmail(email) // Save for display purposes
   }
 
   // Collapsed state - just a button
@@ -71,29 +75,30 @@ export function AddCommentForm({ postId, onSuccess }: AddCommentFormProps) {
     )
   }
 
-  // Expanded state - the form
+  // Expanded state - need to verify email first if not already verified
+  if (!verifiedEmail) {
+    return (
+      <div className="p-3 bg-muted/30 rounded-lg space-y-2">
+        <p className="text-sm text-muted-foreground">
+          Verify your email to comment
+        </p>
+        <EmailVerificationForm
+          onVerified={handleVerified}
+          onCancel={() => setIsOpen(false)}
+        />
+      </div>
+    )
+  }
+
+  // Verified - show comment form
   return (
     <form onSubmit={handleSubmit} className="space-y-3 p-3 bg-muted/30 rounded-lg">
-      <div className="space-y-1">
-        <label htmlFor={`comment-email-${postId}`} className="text-xs font-medium text-muted-foreground">
-          Your email
-        </label>
-        <Input
-          id={`comment-email-${postId}`}
-          type="email"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          disabled={loading}
-          className="h-8 text-sm"
-        />
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <span>Commenting as</span>
+        <span className="font-medium text-foreground">{verifiedEmail}</span>
       </div>
 
       <div className="space-y-1">
-        <label htmlFor={`comment-content-${postId}`} className="text-xs font-medium text-muted-foreground">
-          Comment
-        </label>
         <Textarea
           id={`comment-content-${postId}`}
           placeholder="Share your thoughts..."
@@ -125,7 +130,7 @@ export function AddCommentForm({ postId, onSuccess }: AddCommentFormProps) {
         <Button
           type="submit"
           size="sm"
-          disabled={loading || !email.trim() || !content.trim()}
+          disabled={loading || !content.trim()}
         >
           {loading ? "Posting..." : "Post"}
         </Button>
