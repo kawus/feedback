@@ -145,6 +145,44 @@ export default function BoardPage() {
       )
       // Vote count changes are handled by database triggers that update posts.vote_count
       // The posts UPDATE listener above will catch those changes automatically
+      // Listen for new comments (update count in realtime)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'comments',
+        },
+        (payload) => {
+          const newComment = payload.new as { post_id: string }
+          setPosts((currentPosts) =>
+            currentPosts.map((post) =>
+              post.id === newComment.post_id
+                ? { ...post, comment_count: (post.comment_count || 0) + 1 }
+                : post
+            )
+          )
+        }
+      )
+      // Listen for deleted comments (update count in realtime)
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'comments',
+        },
+        (payload) => {
+          const oldComment = payload.old as { post_id: string }
+          setPosts((currentPosts) =>
+            currentPosts.map((post) =>
+              post.id === oldComment.post_id
+                ? { ...post, comment_count: Math.max(0, (post.comment_count || 0) - 1) }
+                : post
+            )
+          )
+        }
+      )
       .subscribe()
 
     // Cleanup subscription on unmount
