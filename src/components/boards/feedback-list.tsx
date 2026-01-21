@@ -134,7 +134,7 @@ function FeedbackItem({ post, boardSlug, isOwner, onVoteChange }: FeedbackItemPr
               postId={post.id}
               boardSlug={boardSlug}
               isOwner={isOwner}
-              initialCommentCount={0}
+              initialCommentCount={post.comment_count || 0}
             />
             {isOwner && (
               <>

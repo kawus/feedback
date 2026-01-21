@@ -69,14 +69,20 @@ export default function BoardPage() {
     const ownsViaAuth = user && boardData.user_id === user.id
     setIsOwner(hasToken || !!ownsViaAuth)
 
-    // Fetch posts for this board
+    // Fetch posts for this board (including comment counts)
     const { data: postsData } = await supabase
       .from("posts")
-      .select("*")
+      .select("*, comments(count)")
       .eq("board_id", boardData.id)
       .order("created_at", { ascending: false })
 
-    setPosts(postsData || [])
+    // Transform to extract comment count from nested array
+    setPosts(
+      postsData?.map((p) => ({
+        ...p,
+        comment_count: (p.comments as { count: number }[])?.[0]?.count || 0,
+      })) || []
+    )
     setLoading(false)
   }, [slug, user])
 

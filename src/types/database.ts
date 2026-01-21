@@ -25,6 +25,7 @@ export interface Post {
   vote_count: number;
   author_email: string;
   created_at: string;
+  comment_count?: number; // Computed from comments table
 }
 
 export type PostStatus = 'open' | 'planned' | 'in_progress' | 'done';
