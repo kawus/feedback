@@ -106,14 +106,14 @@ export function VoteButton({ postId, voteCount, onVoteChange, boardSlug, boardCl
       .maybeSingle()
 
     if (existingVote) {
-      // User has voted - remove the vote
-      const { error: deleteError } = await supabase
-        .from("votes")
-        .delete()
-        .eq("post_id", postId)
-        .eq("voter_email", normalizedEmail)
+      // User has voted - remove the vote via API route (RLS blocks client-side delete)
+      const response = await fetch("/api/votes", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId, voterEmail: normalizedEmail }),
+      })
 
-      if (deleteError) {
+      if (!response.ok) {
         setError("Failed to remove vote")
         setLoading(false)
         return
