@@ -239,10 +239,13 @@ export default function MyBoardsPage() {
 
             {/* Sign in prompt for unauthenticated users with local boards */}
             {showSignInPrompt && (
-              <div className="border border-border rounded-lg p-4 bg-muted/50">
+              <div className="border border-border rounded-lg p-4 bg-muted/50 flex items-center justify-between gap-4">
                 <p className="text-sm text-muted-foreground">
                   Sign in to see boards you&apos;ve secured on other devices.
                 </p>
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/signin">Sign in</Link>
+                </Button>
               </div>
             )}
           </div>

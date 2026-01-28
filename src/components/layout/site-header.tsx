@@ -123,13 +123,21 @@ export function SiteHeader({ showComingSoon = false }: SiteHeaderProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : hasBoards ? (
-              // Not signed in but has boards: Show "My Boards" link
-              <Link
-                href="/my-boards"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                My Boards
-              </Link>
+              // Not signed in but has boards: Show both "My Boards" and "Sign In"
+              <div className="flex items-center gap-4">
+                <Link
+                  href="/my-boards"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  My Boards
+                </Link>
+                <Link
+                  href="/signin"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Sign In
+                </Link>
+              </div>
             ) : (
               // No boards, no auth: Show "Sign In" link
               <Link
