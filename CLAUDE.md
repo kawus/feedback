@@ -40,6 +40,7 @@ npm run lint     # Run ESLint
   - `changelog/[id]/` - Changelog entry PATCH and DELETE
   - `posts/[id]/` - Post status PATCH and DELETE (dual auth: token OR user)
   - `comments/` - Comment POST (requires verified email) and DELETE (owner or author)
+  - `votes/` - Vote DELETE (validates verified email, uses service role)
 - `src/components/ui/` - shadcn/ui components (Button, Card, Input, Badge)
 - `src/components/boards/` - Board-specific components (forms, lists, badges)
 - `src/components/layout/` - Shared layout components (SiteHeader)
@@ -133,22 +134,30 @@ Premium design tokens defined in `globals.css`:
 The voting system requires these PostgreSQL triggers to keep `posts.vote_count` in sync:
 
 ```sql
--- Functions must use SECURITY DEFINER to bypass RLS
+-- Functions use SECURITY DEFINER to bypass RLS and SET search_path for security
 CREATE OR REPLACE FUNCTION increment_vote_count()
-RETURNS TRIGGER SECURITY DEFINER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
-  UPDATE posts SET vote_count = vote_count + 1 WHERE id = NEW.post_id;
+  UPDATE public.posts SET vote_count = vote_count + 1 WHERE id = NEW.post_id;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE OR REPLACE FUNCTION decrement_vote_count()
-RETURNS TRIGGER SECURITY DEFINER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
-  UPDATE posts SET vote_count = GREATEST(0, vote_count - 1) WHERE id = OLD.post_id;
+  UPDATE public.posts SET vote_count = GREATEST(0, vote_count - 1) WHERE id = OLD.post_id;
   RETURN OLD;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE TRIGGER vote_increment_trigger
 AFTER INSERT ON votes FOR EACH ROW EXECUTE FUNCTION increment_vote_count();
@@ -194,10 +203,47 @@ CREATE INDEX idx_verified_emails_email ON verified_emails(email);
 
 ALTER TABLE verified_emails ENABLE ROW LEVEL SECURITY;
 
+-- SELECT: Anyone can check verification status
 CREATE POLICY "Anyone can check verification status"
   ON verified_emails FOR SELECT USING (true);
 
-CREATE POLICY "Allow insert for verified emails"
-  ON verified_emails FOR INSERT
-  WITH CHECK (true);
+-- INSERT: Only via API routes (service role bypasses RLS)
+-- No open INSERT policy - prevents direct client-side inserts
+```
+
+## Votes Table RLS Policies
+```sql
+-- Votes require verified email to INSERT
+CREATE POLICY "Verified emails can vote"
+ON votes FOR INSERT
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM verified_emails
+    WHERE email = voter_email
+    AND expires_at > NOW()
+  )
+);
+
+-- Only authenticated users can DELETE their own votes
+-- Anonymous users must use /api/votes DELETE endpoint
+CREATE POLICY "Authenticated users can remove own vote"
+ON votes FOR DELETE
+TO authenticated
+USING (voter_email = auth.jwt()->>'email');
+```
+
+## Changelog Entries RLS Policy
+```sql
+-- Only authenticated board owners can insert changelog entries
+-- Anonymous board owners (with claim token) use API routes
+CREATE POLICY "Board owners can insert changelog entries"
+ON changelog_entries FOR INSERT
+TO authenticated
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM boards
+    WHERE boards.id = board_id
+    AND boards.user_id = auth.uid()
+  )
+);
 ```
