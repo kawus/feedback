@@ -310,7 +310,7 @@ export default function BoardPage() {
               <div className="flex items-center gap-2">
                 {claimSent ? (
                   <span className="text-xs text-green-600 dark:text-green-400">
-                    Check your email for the claim link
+                    Check your email for the secure link
                   </span>
                 ) : showClaimForm ? (
                   <form onSubmit={handleClaim} className="flex items-center gap-2">
@@ -344,7 +344,7 @@ export default function BoardPage() {
                     onClick={() => setShowClaimForm(true)}
                     className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    Unclaimed · <span className="underline">Claim to keep</span>
+                    Unsecured · <span className="underline">Secure to keep</span>
                   </button>
                 )}
               </div>
@@ -443,6 +443,8 @@ export default function BoardPage() {
             boardSlug={slug}
             isOwner={isOwner}
             onVoteChange={fetchData}
+            boardClaimed={!!board.user_id}
+            onSecureClick={() => setShowClaimForm(true)}
           />
         </div>
 

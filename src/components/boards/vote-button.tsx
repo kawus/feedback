@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { supabase } from "@/lib/supabase"
 import { getVerifiedEmail } from "@/lib/verified-email"
 import { saveVoterEmail } from "@/lib/voter-email"
+import { isMyBoard } from "@/lib/board-tokens"
 import { EmailVerificationForm } from "@/components/auth/email-verification-form"
 import { useAuth } from "@/components/auth/auth-provider"
 import { toast } from "@/components/ui/sonner"
@@ -12,9 +13,12 @@ interface VoteButtonProps {
   postId: string
   voteCount: number
   onVoteChange?: () => void
+  boardSlug?: string // For secure suggestion after voting
+  boardClaimed?: boolean // Whether the board is already claimed
+  onSecureClick?: () => void // Called when user clicks "Secure now" in toast
 }
 
-export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps) {
+export function VoteButton({ postId, voteCount, onVoteChange, boardSlug, boardClaimed, onSecureClick }: VoteButtonProps) {
   const { user } = useAuth()
   // Track verified email in state so we can react to changes
   const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null)
@@ -135,9 +139,25 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
 
       // Show welcome toast for first-time voters
       if (isFirstVote) {
-        toast.success("Vote recorded", {
-          description: "We'll update you when this ships.",
-        })
+        // Check if this is the user's own unclaimed board
+        const isOwnBoard = boardSlug && isMyBoard(boardSlug)
+        const isUnclaimed = boardClaimed === false
+
+        if (isOwnBoard && isUnclaimed && onSecureClick) {
+          // Suggest securing the board with the email they just verified
+          toast.success("Vote recorded", {
+            description: "Want to secure this board with your verified email?",
+            action: {
+              label: "Secure now",
+              onClick: onSecureClick,
+            },
+            duration: 8000,
+          })
+        } else {
+          toast.success("Vote recorded", {
+            description: "We'll update you when this ships.",
+          })
+        }
       }
     }
 
@@ -181,6 +201,7 @@ export function VoteButton({ postId, voteCount, onVoteChange }: VoteButtonProps)
           onVerified={handleVerified}
           onCancel={() => setShowVerification(false)}
           compact
+          context="vote"
         />
         {error && <p className="text-destructive text-xs">{error}</p>}
       </div>

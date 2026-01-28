@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { useAuth } from "@/components/auth/auth-provider"
 import { sendMagicLink } from "@/lib/auth"
 import { getBoardToken } from "@/lib/board-tokens"
+import { getVerifiedEmail } from "@/lib/verified-email"
 
 interface ClaimBannerProps {
   boardSlug: string
@@ -16,7 +17,7 @@ export function ClaimBanner({ boardSlug, onDismiss }: ClaimBannerProps) {
   const { user } = useAuth()
   const [dismissed, setDismissed] = useState(false)
   const [showForm, setShowForm] = useState(false)
-  const [email, setEmail] = useState("")
+  const [email, setEmail] = useState(() => getVerifiedEmail() || "")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
@@ -58,7 +59,7 @@ export function ClaimBanner({ boardSlug, onDismiss }: ClaimBannerProps) {
           Check your email!
         </p>
         <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-          We sent a link to <strong>{email}</strong>. Click it to claim this
+          We sent a link to <strong>{email}</strong>. Click it to secure this
           board.
         </p>
       </div>
@@ -90,7 +91,7 @@ export function ClaimBanner({ boardSlug, onDismiss }: ClaimBannerProps) {
               This board is only saved in your browser
             </p>
             <p className="text-sm text-amber-700 dark:text-amber-300 mt-0.5">
-              Claim it to access from any device and never lose it.
+              Secure it to access from any device and never lose it.
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -101,7 +102,7 @@ export function ClaimBanner({ boardSlug, onDismiss }: ClaimBannerProps) {
               Dismiss
             </button>
             <Button size="sm" onClick={() => setShowForm(true)} className="bg-amber-600 hover:bg-amber-700 text-white">
-              Claim with email
+              Secure with email
             </Button>
           </div>
         </div>
@@ -126,7 +127,7 @@ export function ClaimBanner({ boardSlug, onDismiss }: ClaimBannerProps) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-amber-800 dark:text-amber-200 text-sm mb-2">
-                Enter your email to claim this board
+                Enter your email to secure this board
               </p>
               <div className="flex gap-2">
                 <Input

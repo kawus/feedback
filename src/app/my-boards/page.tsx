@@ -166,7 +166,7 @@ export default function MyBoardsPage() {
             </h2>
             <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
               {user
-                ? "Your claimed boards will appear here. Create a new board or visit an existing board URL to claim it."
+                ? "Your secured boards will appear here. Create a new board or visit an existing board URL to secure it."
                 : "Create your first feedback board in seconds. No account required."}
             </p>
             <Button asChild>
@@ -193,11 +193,11 @@ export default function MyBoardsPage() {
                     />
                   </svg>
                   <h2 className="font-semibold text-foreground">
-                    Unclaimed Boards
+                    Unsecured Boards
                   </h2>
                 </div>
                 <p className="text-sm text-muted-foreground mb-4">
-                  These boards are only saved in this browser. Claim them to
+                  These boards are only saved in this browser. Secure them to
                   access from anywhere and prevent losing your feedback.
                 </p>
                 <div className="space-y-3">
@@ -226,7 +226,7 @@ export default function MyBoardsPage() {
                     />
                   </svg>
                   <h2 className="font-semibold text-foreground">
-                    Your Claimed Boards
+                    Secured Boards
                   </h2>
                 </div>
                 <div className="space-y-3">
@@ -241,7 +241,7 @@ export default function MyBoardsPage() {
             {showSignInPrompt && (
               <div className="border border-border rounded-lg p-4 bg-muted/50">
                 <p className="text-sm text-muted-foreground">
-                  Sign in to see boards you&apos;ve claimed on other devices.
+                  Sign in to see boards you&apos;ve secured on other devices.
                 </p>
               </div>
             )}

@@ -10,6 +10,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { sendMagicLink } from "@/lib/auth"
+import { getBoardToken } from "@/lib/board-tokens"
+import { getVerifiedEmail } from "@/lib/verified-email"
 
 interface BoardCreatedModalProps {
   open: boolean
@@ -20,6 +24,11 @@ interface BoardCreatedModalProps {
 export function BoardCreatedModal({ open, boardName, boardSlug }: BoardCreatedModalProps) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
+  const [showSecureForm, setShowSecureForm] = useState(false)
+  const [email, setEmail] = useState(() => getVerifiedEmail() || "")
+  const [secureLoading, setSecureLoading] = useState(false)
+  const [secureError, setSecureError] = useState("")
+  const [secureSuccess, setSecureSuccess] = useState(false)
 
   const boardUrl = typeof window !== "undefined"
     ? `${window.location.origin}/b/${boardSlug}`
@@ -45,6 +54,26 @@ export function BoardCreatedModal({ open, boardName, boardSlug }: BoardCreatedMo
 
   const handleGoToBoard = () => {
     router.push(`/b/${boardSlug}`)
+  }
+
+  const handleSecure = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSecureLoading(true)
+    setSecureError("")
+
+    const claimToken = getBoardToken(boardSlug)
+    const redirectUrl = `${window.location.origin}/auth/callback?claim=${boardSlug}&token=${claimToken}&redirect=/b/${boardSlug}`
+
+    const { error: authError } = await sendMagicLink(email, redirectUrl)
+
+    setSecureLoading(false)
+
+    if (authError) {
+      setSecureError(authError.message)
+      return
+    }
+
+    setSecureSuccess(true)
   }
 
   return (
@@ -119,6 +148,78 @@ export function BoardCreatedModal({ open, boardName, boardSlug }: BoardCreatedMo
               <span>Watch votes come in and prioritize what to build</span>
             </li>
           </ul>
+        </div>
+
+        {/* Secure warning section */}
+        <div className="mt-6 pt-4 border-t border-border">
+          {secureSuccess ? (
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
+              <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                Check your email!
+              </p>
+              <p className="text-xs text-green-700 dark:text-green-300 mt-1">
+                Click the link we sent to <strong>{email}</strong> to secure your board.
+              </p>
+            </div>
+          ) : !showSecureForm ? (
+            <div className="flex items-start gap-3">
+              <div className="shrink-0 mt-0.5">
+                <svg
+                  className="w-4 h-4 text-amber-500"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">This board is only saved in this browser.</span>{" "}
+                  Secure it with your email to access from anywhere.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowSecureForm(true)}
+                className="shrink-0"
+              >
+                Secure now
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={handleSecure} className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Enter your email to secure this board forever.
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={secureLoading}
+                  className="flex-1"
+                />
+                <Button type="submit" size="sm" disabled={secureLoading || !email}>
+                  {secureLoading ? "Sending..." : "Send link"}
+                </Button>
+              </div>
+              {secureError && (
+                <p className="text-destructive text-xs">{secureError}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                We&apos;ll send you a link. No password needed.
+              </p>
+            </form>
+          )}
         </div>
 
         {/* CTA Button */}

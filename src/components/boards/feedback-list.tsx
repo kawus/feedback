@@ -13,9 +13,11 @@ interface FeedbackListProps {
   boardSlug: string
   isOwner: boolean
   onVoteChange?: () => void
+  boardClaimed?: boolean // Whether the board is already claimed
+  onSecureClick?: () => void // Called when user clicks "Secure now" in vote toast
 }
 
-export function FeedbackList({ posts, boardSlug, isOwner, onVoteChange }: FeedbackListProps) {
+export function FeedbackList({ posts, boardSlug, isOwner, onVoteChange, boardClaimed, onSecureClick }: FeedbackListProps) {
   if (posts.length === 0) {
     return (
       <div className="text-center py-16 text-muted-foreground">
@@ -56,6 +58,8 @@ export function FeedbackList({ posts, boardSlug, isOwner, onVoteChange }: Feedba
           boardSlug={boardSlug}
           isOwner={isOwner}
           onVoteChange={onVoteChange}
+          boardClaimed={boardClaimed}
+          onSecureClick={onSecureClick}
         />
       ))}
     </div>
@@ -67,9 +71,11 @@ interface FeedbackItemProps {
   boardSlug: string
   isOwner: boolean
   onVoteChange?: () => void
+  boardClaimed?: boolean
+  onSecureClick?: () => void
 }
 
-function FeedbackItem({ post, boardSlug, isOwner, onVoteChange }: FeedbackItemProps) {
+function FeedbackItem({ post, boardSlug, isOwner, onVoteChange, boardClaimed, onSecureClick }: FeedbackItemProps) {
   const [deleting, setDeleting] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
@@ -115,6 +121,9 @@ function FeedbackItem({ post, boardSlug, isOwner, onVoteChange }: FeedbackItemPr
           postId={post.id}
           voteCount={post.vote_count}
           onVoteChange={onVoteChange}
+          boardSlug={boardSlug}
+          boardClaimed={boardClaimed}
+          onSecureClick={onSecureClick}
         />
 
         {/* Content */}

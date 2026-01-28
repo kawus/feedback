@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { sendMagicLink } from "@/lib/auth"
 import { getBoardToken } from "@/lib/board-tokens"
+import { getVerifiedEmail } from "@/lib/verified-email"
 
 interface BoardCardProps {
   board: {
@@ -40,7 +41,7 @@ function getDaysUntilExpiry(expiresAt: string | null): number | null {
 
 export function BoardCard({ board, claimed, onClaimSent }: BoardCardProps) {
   const [showClaimForm, setShowClaimForm] = useState(false)
-  const [email, setEmail] = useState("")
+  const [email, setEmail] = useState(() => getVerifiedEmail() || "")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [sent, setSent] = useState(false)
@@ -158,7 +159,7 @@ export function BoardCard({ board, claimed, onClaimSent }: BoardCardProps) {
               className="h-8 text-xs text-amber-600 border-amber-300 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-700 dark:hover:bg-amber-900/20"
               onClick={() => setShowClaimForm(true)}
             >
-              Claim with email
+              Secure with email
             </Button>
           )}
 

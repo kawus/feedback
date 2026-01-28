@@ -10,15 +10,22 @@ interface EmailVerificationFormProps {
   onCancel?: () => void
   initialEmail?: string
   compact?: boolean // For inline use in vote button
+  context?: "vote" | "comment" // Explains why verification is needed
 }
 
 type Step = "email" | "otp"
+
+const contextMessages = {
+  vote: "Quick verification so we count real votes",
+  comment: "Verify your email so others know who you are",
+}
 
 export function EmailVerificationForm({
   onVerified,
   onCancel,
   initialEmail = "",
   compact = false,
+  context,
 }: EmailVerificationFormProps) {
   const [step, setStep] = useState<Step>("email")
   const [email, setEmail] = useState(initialEmail)
@@ -145,6 +152,11 @@ export function EmailVerificationForm({
   if (step === "email") {
     return (
       <div className={compact ? "space-y-2" : "space-y-3"}>
+        {context && (
+          <p className={compact ? "text-xs text-muted-foreground" : "text-sm text-muted-foreground"}>
+            {contextMessages[context]}
+          </p>
+        )}
         <form onSubmit={handleSendOtp} className="space-y-2">
           <Input
             type="email"

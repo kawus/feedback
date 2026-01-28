@@ -130,6 +130,7 @@ export function AddCommentForm({ postId, onSuccess }: AddCommentFormProps) {
         <EmailVerificationForm
           onVerified={handleVerified}
           onCancel={() => setIsOpen(false)}
+          context="comment"
         />
       </div>
     )
