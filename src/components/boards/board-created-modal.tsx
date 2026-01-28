@@ -158,7 +158,7 @@ export function BoardCreatedModal({ open, boardName, boardSlug }: BoardCreatedMo
                 Check your email!
               </p>
               <p className="text-xs text-green-700 dark:text-green-300 mt-1">
-                Click the link we sent to <strong>{email}</strong> to secure your board.
+                Click the link we sent to <strong>{email}</strong> to secure your board. No code needed.
               </p>
             </div>
           ) : !showSecureForm ? (

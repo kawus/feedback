@@ -112,8 +112,11 @@ export default function SignInPage() {
               </svg>
             </div>
             <h2 className="font-semibold text-foreground mb-2">Check your email</h2>
+            <p className="text-sm text-muted-foreground mb-2">
+              We sent a sign-in link to <span className="font-medium text-foreground">{email}</span>
+            </p>
             <p className="text-sm text-muted-foreground mb-4">
-              We sent a magic link to <span className="font-medium text-foreground">{email}</span>
+              Click the link in the email to sign in. No code needed.
             </p>
             <button
               onClick={() => {

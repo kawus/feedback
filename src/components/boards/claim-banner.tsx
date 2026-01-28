@@ -59,8 +59,7 @@ export function ClaimBanner({ boardSlug, onDismiss }: ClaimBannerProps) {
           Check your email!
         </p>
         <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-          We sent a link to <strong>{email}</strong>. Click it to secure this
-          board.
+          Click the link we sent to <strong>{email}</strong> to secure this board. No code needed.
         </p>
       </div>
     )
